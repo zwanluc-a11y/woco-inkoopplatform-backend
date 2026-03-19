@@ -8,15 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy dependency files first for better caching
-COPY pyproject.toml ./
+# Copy everything
+COPY . .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e .
-
-# Copy application code
-COPY . .
+    pip install --no-cache-dir .
 
 # Create data directory
 RUN mkdir -p /app/data/categories
