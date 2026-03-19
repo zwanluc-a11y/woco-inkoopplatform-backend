@@ -151,7 +151,10 @@ def _resolve_user(payload: dict, db: Session) -> User:
         name = f"{first} {last}".strip()
     if not name:
         name = email.split("@")[0] if email else "Gebruiker"
-    user = User(clerk_id=clerk_id, email=email, name=name, platform_role=None)
+    # Auto-promote first user to platform eigenaar
+    existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
+    initial_role = "eigenaar" if not existing_owner else None
+    user = User(clerk_id=clerk_id, email=email, name=name, platform_role=initial_role)
     db.add(user)
     db.commit()
     db.refresh(user)
