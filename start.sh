@@ -1,14 +1,11 @@
 #!/bin/bash
-set -e
-
 echo "Starting WoCo Inkoopplatform Backend..."
 
-# Run database migrations
-echo "Running database migrations..."
-alembic upgrade head
+# Skip alembic - tables are created via SQLAlchemy create_all in main.py lifespan
+# alembic upgrade head
 
 # Start the application
-echo "Starting uvicorn server..."
+echo "Starting uvicorn server on port ${PORT:-8000}..."
 exec uvicorn app.main:app \
     --host 0.0.0.0 \
     --port ${PORT:-8000} \

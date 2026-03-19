@@ -53,9 +53,9 @@ def _sqlite_add_missing_columns() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Creating database tables (create_all) ...")
+    Base.metadata.create_all(bind=engine)
     if app_settings.DATABASE_URL.startswith("sqlite"):
-        logger.info("SQLite detected - running create_all ...")
-        Base.metadata.create_all(bind=engine)
         _sqlite_add_missing_columns()
     logger.info("Running seed_initial_data ...")
     await seed_initial_data()
