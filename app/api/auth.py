@@ -23,7 +23,7 @@ async def promote_first_admin(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    """Promote the first user to platform eigenaar (only works if no eigenaar exists yet)."""
+    """Promote the current user to platform eigenaar (only works if no eigenaar exists yet)."""
     existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
     if existing_owner:
         raise HTTPException(status_code=409, detail="Er is al een platform eigenaar")
@@ -31,6 +31,20 @@ async def promote_first_admin(
     db.commit()
     db.refresh(current_user)
     return {"detail": f"Gebruiker {current_user.email} is nu platform eigenaar", "user": {"id": current_user.id, "email": current_user.email, "platform_role": current_user.platform_role}}
+
+
+@router.get("/bootstrap")
+async def bootstrap_admin(db: Session = Depends(get_db)):
+    """One-time bootstrap: promote the first user in the DB to eigenaar. No auth needed. Only works once."""
+    existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
+    if existing_owner:
+        return {"detail": "Er is al een platform eigenaar", "email": existing_owner.email}
+    first_user = db.query(User).order_by(User.id.asc()).first()
+    if not first_user:
+        raise HTTPException(status_code=404, detail="Geen gebruikers gevonden")
+    first_user.platform_role = "eigenaar"
+    db.commit()
+    return {"detail": f"{first_user.email} is nu platform eigenaar", "email": first_user.email, "platform_role": "eigenaar"}
 
 
 @router.get("/invite/{token}")
