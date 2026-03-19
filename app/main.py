@@ -88,19 +88,19 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# CORS
+# CORS - always include Vercel frontend
 _cors_origins = app_settings.CORS_ORIGINS
-if _cors_origins == "*":
-    _allow_origins = ["*"]
-    _allow_credentials = False
-else:
-    _allow_origins = [o.strip() for o in _cors_origins.split(",")]
-    _allow_credentials = True
+_allow_origins = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+# Always include the Vercel frontend
+if "https://woco-inkoopplatform.vercel.app" not in _allow_origins:
+    _allow_origins.append("https://woco-inkoopplatform.vercel.app")
+if "http://localhost:3000" not in _allow_origins:
+    _allow_origins.append("http://localhost:3000")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allow_origins,
-    allow_credentials=_allow_credentials,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
