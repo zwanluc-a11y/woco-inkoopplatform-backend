@@ -18,6 +18,21 @@ async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
 
+@router.post("/promote-first-admin")
+async def promote_first_admin(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Promote the first user to platform eigenaar (only works if no eigenaar exists yet)."""
+    existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
+    if existing_owner:
+        raise HTTPException(status_code=409, detail="Er is al een platform eigenaar")
+    current_user.platform_role = "eigenaar"
+    db.commit()
+    db.refresh(current_user)
+    return {"detail": f"Gebruiker {current_user.email} is nu platform eigenaar", "user": {"id": current_user.id, "email": current_user.email, "platform_role": current_user.platform_role}}
+
+
 @router.get("/invite/{token}")
 async def get_invitation_info(token: str, db: Annotated[Session, Depends(get_db)]):
     invitation = db.query(Invitation).filter(
