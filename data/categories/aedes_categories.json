@@ -1,0 +1,222 @@
+[
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Onderhoud",
+    "nummer": "A1001",
+    "inkooppakket": "Schilderwerk",
+    "definitie": "Schilderwerk aan woningen en complexen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Onderhoud",
+    "nummer": "A1002",
+    "inkooppakket": "Dakbedekking",
+    "definitie": "Onderhoud en vervanging dakbedekking",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Onderhoud",
+    "nummer": "A1003",
+    "inkooppakket": "CV-installaties",
+    "definitie": "Onderhoud en vervanging cv-ketels en verwarmingsinstallaties",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Onderhoud",
+    "nummer": "A1004",
+    "inkooppakket": "Liftonderhoud",
+    "definitie": "Onderhoud, keuring en reparatie van liften",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Onderhoud",
+    "nummer": "A1005",
+    "inkooppakket": "Elektra-installaties",
+    "definitie": "Onderhoud en aanpassing elektra-installaties in woningen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Renovatie",
+    "nummer": "A1010",
+    "inkooppakket": "Badkamerrenovatie",
+    "definitie": "Complete renovatie van badkamers in bestaande woningen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Renovatie",
+    "nummer": "A1011",
+    "inkooppakket": "Keukenrenovatie",
+    "definitie": "Complete renovatie van keukens in bestaande woningen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Nieuwbouw",
+    "nummer": "A1020",
+    "inkooppakket": "Nieuwbouw woningen",
+    "definitie": "Bouw van nieuwe sociale huurwoningen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "1-Vastgoed",
+    "sector": "Onderhoud",
+    "nummer": "A1006",
+    "inkooppakket": "Riolering en drainage",
+    "definitie": "Onderhoud en vervanging riolering en drainagesystemen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "2-Facilitair",
+    "sector": "Schoonmaak",
+    "nummer": "A2001",
+    "inkooppakket": "Schoonmaak algemene ruimten",
+    "definitie": "Schoonmaak van trappenhuizen, galerijen en gemeenschappelijke ruimten",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "2-Facilitair",
+    "sector": "Beveiliging",
+    "nummer": "A2002",
+    "inkooppakket": "Beveiliging en toegangscontrole",
+    "definitie": "Beveiligingsdiensten en elektronische toegangscontrolesystemen",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "2-Facilitair",
+    "sector": "Groenvoorziening",
+    "nummer": "A2003",
+    "inkooppakket": "Groenonderhoud",
+    "definitie": "Onderhoud van tuinen, groenstroken en buitenruimten",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "3-ICT",
+    "sector": "Software",
+    "nummer": "A3001",
+    "inkooppakket": "ERP/Primair systeem",
+    "definitie": "Enterprise resource planning en woningbeheersysteem",
+    "soort_inkoop": "ICT Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "3-ICT",
+    "sector": "Hardware",
+    "nummer": "A3002",
+    "inkooppakket": "Werkplekken en laptops",
+    "definitie": "Aanschaf en beheer van werkplekken, laptops en randapparatuur",
+    "soort_inkoop": "Leveringen",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "3-ICT",
+    "sector": "Software",
+    "nummer": "A3003",
+    "inkooppakket": "Huurderportaal",
+    "definitie": "Online portaal voor huurders (reparatieverzoeken, huurbetaling)",
+    "soort_inkoop": "ICT Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "4-Personeel",
+    "sector": "Uitzendkrachten",
+    "nummer": "A4001",
+    "inkooppakket": "Uitzendkrachten technisch",
+    "definitie": "Inhuur van technisch personeel via uitzendbureau",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "4-Personeel",
+    "sector": "Opleidingen",
+    "nummer": "A4002",
+    "inkooppakket": "Opleidingen en trainingen",
+    "definitie": "Opleidingen, trainingen en cursussen voor medewerkers",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "5-Financieel",
+    "sector": "Accountancy",
+    "nummer": "A5001",
+    "inkooppakket": "Accountancy en controle",
+    "definitie": "Accountantscontrole en financiele rapportages",
+    "soort_inkoop": "Advies Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "5-Financieel",
+    "sector": "Verzekeringen",
+    "nummer": "A5002",
+    "inkooppakket": "Verzekeringen vastgoed",
+    "definitie": "Opstal-, brand- en aansprakelijkheidsverzekeringen",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "6-Advies",
+    "sector": "Juridisch",
+    "nummer": "A6001",
+    "inkooppakket": "Juridisch advies",
+    "definitie": "Juridische advisering op het gebied van huurrecht en vastgoed",
+    "soort_inkoop": "Advies Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "6-Advies",
+    "sector": "Technisch",
+    "nummer": "A6002",
+    "inkooppakket": "Bouwkundig advies",
+    "definitie": "Bouwkundig advies en constructieberekeningen",
+    "soort_inkoop": "Advies Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "6-Advies",
+    "sector": "Technisch",
+    "nummer": "A6003",
+    "inkooppakket": "Energieadvies en verduurzaming",
+    "definitie": "Advisering rondom energielabels, isolatie en verduurzaming woningvoorraad",
+    "soort_inkoop": "Advies Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  }
+]

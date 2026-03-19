@@ -1,0 +1,122 @@
+[
+  {
+    "groep": "Technisch beheer",
+    "sector": "Onderhoud",
+    "nummer": "BW1001",
+    "inkooppakket": "Planmatig onderhoud",
+    "definitie": "Planmatig onderhoud aan het woningbezit volgens meerjaren onderhoudsplan",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "Technisch beheer",
+    "sector": "Onderhoud",
+    "nummer": "BW1002",
+    "inkooppakket": "Mutatieonderhoud",
+    "definitie": "Onderhoud bij huurdermutatie (oplevering en gereedmaken woning)",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "Technisch beheer",
+    "sector": "Installaties",
+    "nummer": "BW1003",
+    "inkooppakket": "Warmte-installaties",
+    "definitie": "Onderhoud en vervanging verwarmings- en warmwaterinstallaties",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "Vastgoedontwikkeling",
+    "sector": "Nieuwbouw",
+    "nummer": "BW2001",
+    "inkooppakket": "Nieuwbouwprojecten",
+    "definitie": "Realisatie van nieuwbouwwoningen en -complexen",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Vastgoedontwikkeling",
+    "sector": "Renovatie",
+    "nummer": "BW2002",
+    "inkooppakket": "Grootschalige renovatie",
+    "definitie": "Complexgewijze renovatie en herstructurering",
+    "soort_inkoop": "Werken",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Bedrijfsvoering",
+    "sector": "ICT",
+    "nummer": "BW3001",
+    "inkooppakket": "ICT infrastructuur",
+    "definitie": "Netwerk, servers, cloud en overige IT-infrastructuur",
+    "soort_inkoop": "ICT Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Bedrijfsvoering",
+    "sector": "Facilitair",
+    "nummer": "BW3002",
+    "inkooppakket": "Kantoorvoorzieningen",
+    "definitie": "Kantoorbenodigdheden, meubilair en facilitaire diensten",
+    "soort_inkoop": "Leveringen",
+    "cpv_code": "",
+    "homogeen": true
+  },
+  {
+    "groep": "Bedrijfsvoering",
+    "sector": "Personeel",
+    "nummer": "BW3003",
+    "inkooppakket": "Inhuur personeel",
+    "definitie": "Inhuur van tijdelijk personeel en ZZP'ers",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Advies en dienstverlening",
+    "sector": "Advies",
+    "nummer": "BW4001",
+    "inkooppakket": "Strategisch advies",
+    "definitie": "Organisatieadvies, beleidsadvies en strategische ondersteuning",
+    "soort_inkoop": "Advies Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Advies en dienstverlening",
+    "sector": "Financieel",
+    "nummer": "BW4002",
+    "inkooppakket": "Accountancy en belastingadvies",
+    "definitie": "Accountantscontrole, jaarrekening en fiscaal advies",
+    "soort_inkoop": "Advies Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Woondiensten",
+    "sector": "Leefbaarheid",
+    "nummer": "BW5001",
+    "inkooppakket": "Leefbaarheidsprojecten",
+    "definitie": "Projecten gericht op leefbaarheid in wijken en buurten",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  },
+  {
+    "groep": "Woondiensten",
+    "sector": "Sociaal beheer",
+    "nummer": "BW5002",
+    "inkooppakket": "Sociaal beheer en woonbegeleiding",
+    "definitie": "Woonbegeleiding, overlastbemiddeling en sociaal beheer",
+    "soort_inkoop": "Diensten",
+    "cpv_code": "",
+    "homogeen": false
+  }
+]
