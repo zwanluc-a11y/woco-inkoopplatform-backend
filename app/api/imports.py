@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.database import SessionLocal
 from app.models.contract import Contract, ContractSupplier
 from app.models.import_session import ImportSession
@@ -28,11 +28,10 @@ from app.services.import_service import ImportService
 router = APIRouter(
     prefix="/organizations/{org_id}/import",
     tags=["import"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
-@router.post("/upload", dependencies=[Depends(verify_org_beheerder)], response_model=ImportUploadResponse)
+@router.post("/upload", response_model=ImportUploadResponse)
 async def upload_excel(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
@@ -107,7 +106,7 @@ def _run_import_background(session_id: int, column_mapping: dict, year: Optional
         bg_db.close()
 
 
-@router.post("/confirm", dependencies=[Depends(verify_org_beheerder)], response_model=ImportStatusResponse)
+@router.post("/confirm", response_model=ImportStatusResponse)
 async def confirm_import(
     org_id: int,
     data: ImportConfirmRequest,
@@ -177,7 +176,7 @@ async def import_history(
     )
 
 
-@router.post("/reset-spend", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/reset-spend")
 async def reset_spend_data(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -235,7 +234,7 @@ async def reset_spend_data(
     }
 
 
-@router.delete("/{import_id}", dependencies=[Depends(verify_org_beheerder)], status_code=204)
+@router.delete("/{import_id}", status_code=204)
 async def delete_import(
     org_id: int,
     import_id: int,

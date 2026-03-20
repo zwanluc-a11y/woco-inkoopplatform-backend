@@ -11,7 +11,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_membership
+from app.api.deps import get_current_user, get_db
 
 logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
@@ -112,7 +112,7 @@ async def dashboard_stats(
     }
 
 
-@router.get("/organizations/{org_id}/overview", dependencies=[Depends(verify_org_membership)])
+@router.get("/organizations/{org_id}/overview")
 async def organization_overview(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -623,7 +623,7 @@ async def organization_overview(
     }
 
 
-@router.post("/organizations/{org_id}/overview/recommendations", dependencies=[Depends(verify_org_membership)])
+@router.post("/organizations/{org_id}/overview/recommendations")
 @limiter.limit("3/minute")
 async def generate_recommendations(
     org_id: int,
@@ -657,7 +657,7 @@ async def generate_recommendations(
         )
 
 
-@router.get("/organizations/{org_id}/stats", dependencies=[Depends(verify_org_membership)])
+@router.get("/organizations/{org_id}/stats")
 async def organization_stats(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],

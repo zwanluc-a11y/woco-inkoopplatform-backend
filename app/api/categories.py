@@ -9,7 +9,7 @@ from app.schemas.category import InkoopCategoryResponse
 router = APIRouter(prefix="/categories", tags=["categories"])
 
 
-@router.get("/", response_model=list[InkoopCategoryResponse])
+@router.get("", response_model=list[InkoopCategoryResponse])
 async def list_categories(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

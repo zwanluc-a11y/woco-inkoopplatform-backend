@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.contract import Contract, ContractSupplier
 from app.models.category import InkoopCategory
 from app.models.supplier import Supplier
@@ -20,7 +20,6 @@ from app.models.user import User
 router = APIRouter(
     prefix="/organizations/{org_id}/spend",
     tags=["spend"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
@@ -374,10 +373,7 @@ class BeinvloedbaarheidUpdate(BaseModel):
     is_beinvloedbaar: bool
 
 
-@router.put(
-    "/suppliers/{supplier_id}/beinvloedbaar",
-    dependencies=[Depends(verify_org_beheerder)],
-)
+@router.put("/suppliers/{supplier_id}/beinvloedbaar")
 async def toggle_beinvloedbaar(
     org_id: int,
     supplier_id: int,
@@ -494,10 +490,7 @@ class BulkBeinvloedbaarheidUpdate(BaseModel):
     is_beinvloedbaar: bool
 
 
-@router.put(
-    "/bulk-beinvloedbaar",
-    dependencies=[Depends(verify_org_beheerder)],
-)
+@router.put("/bulk-beinvloedbaar")
 async def bulk_toggle_beinvloedbaar(
     org_id: int,
     body: BulkBeinvloedbaarheidUpdate,

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.contract import Contract, ContractSupplier
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
@@ -18,7 +18,6 @@ from app.services.risk_service import RiskService
 router = APIRouter(
     prefix="/organizations/{org_id}/risk",
     tags=["risk"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
@@ -26,7 +25,7 @@ class CalculateRiskRequest(BaseModel):
     assessment_year: int = 2025
 
 
-@router.post("/calculate", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/calculate")
 def calculate_risk(
     org_id: int,
     request: CalculateRiskRequest,

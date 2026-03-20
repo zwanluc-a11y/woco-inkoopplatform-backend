@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
 from app.models.supplier_yearly_spend import SupplierYearlySpend
@@ -24,7 +24,6 @@ from app.services.categorization_service import CategorizationService
 router = APIRouter(
     prefix="/organizations/{org_id}/categorization",
     tags=["categorization"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
@@ -150,7 +149,7 @@ def debug_categorization(
     return results
 
 
-@router.post("/auto-match-master", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/auto-match-master")
 def auto_match_master_db(
     org_id: int,
     db: Session = Depends(get_db),
@@ -226,7 +225,7 @@ def auto_match_master_db(
     return {"matched": len(results), "results": results}
 
 
-@router.post("/ai-suggest", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/ai-suggest")
 @limiter.limit("5/minute")
 def run_ai_categorization(
     request: Request,  # required by slowapi
@@ -293,7 +292,7 @@ def get_pending_suggestions(
     return results
 
 
-@router.post("/bulk-accept", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/bulk-accept")
 def bulk_accept_suggestions(
     org_id: int,
     request: BulkAcceptRequest,
@@ -306,7 +305,7 @@ def bulk_accept_suggestions(
     return {"accepted": len(results), "results": results}
 
 
-@router.post("/bulk-reject", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/bulk-reject")
 def bulk_reject_suggestions(
     org_id: int,
     request: BulkRejectRequest,
@@ -319,7 +318,7 @@ def bulk_reject_suggestions(
     return {"rejected": count}
 
 
-@router.put("/suppliers/{supplier_id}/category", dependencies=[Depends(verify_org_beheerder)])
+@router.put("/suppliers/{supplier_id}/category")
 def set_supplier_category(
     org_id: int,
     supplier_id: int,
@@ -349,7 +348,7 @@ def set_supplier_category(
     }
 
 
-@router.put("/suppliers/{supplier_id}/multi-category", dependencies=[Depends(verify_org_beheerder)])
+@router.put("/suppliers/{supplier_id}/multi-category")
 def set_supplier_multi_categories(
     org_id: int,
     supplier_id: int,

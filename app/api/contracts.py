@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.contract import Contract, ContractSupplier
 from app.models.supplier import Supplier
 from app.models.supplier_yearly_spend import SupplierYearlySpend
@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     prefix="/organizations/{org_id}/contracts",
     tags=["contracts"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
@@ -70,7 +69,7 @@ def _contract_to_response(contract: Contract, db: Session | None = None) -> dict
     return data
 
 
-@router.get("/")
+@router.get("")
 async def list_contracts(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -88,7 +87,7 @@ async def list_contracts(
     return [_contract_to_response(c, db) for c in contracts]
 
 
-@router.post("/", dependencies=[Depends(verify_org_beheerder)])
+@router.post("")
 async def create_contract(
     org_id: int,
     data: ContractCreate,
@@ -153,7 +152,7 @@ async def get_contract(
     return _contract_to_response(contract, db)
 
 
-@router.put("/{contract_id}", dependencies=[Depends(verify_org_beheerder)])
+@router.put("/{contract_id}")
 async def update_contract(
     org_id: int,
     contract_id: int,
@@ -201,7 +200,7 @@ async def update_contract(
     return _contract_to_response(contract, db)
 
 
-@router.delete("/{contract_id}", dependencies=[Depends(verify_org_beheerder)])
+@router.delete("/{contract_id}")
 async def delete_contract(
     org_id: int,
     contract_id: int,
@@ -255,7 +254,7 @@ async def contract_stats(
     }
 
 
-@router.post("/match-suppliers", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/match-suppliers")
 async def match_contract_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],

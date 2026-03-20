@@ -6,14 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.services.calendar_service import CalendarService
 
 router = APIRouter(
     prefix="/organizations/{org_id}/calendar",
     tags=["calendar"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
@@ -37,7 +36,7 @@ class UpdatePhaseRequest(BaseModel):
     notes: Optional[str] = None
 
 
-@router.post("/generate", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/generate")
 async def generate_calendar(
     org_id: int,
     data: GenerateCalendarRequest,
@@ -53,7 +52,7 @@ async def generate_calendar(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/")
+@router.get("")
 async def get_calendar(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -65,7 +64,7 @@ async def get_calendar(
     return {"items": items, "count": len(items)}
 
 
-@router.put("/items/{item_id}", dependencies=[Depends(verify_org_beheerder)])
+@router.put("/items/{item_id}")
 async def update_calendar_item(
     org_id: int,
     item_id: int,
@@ -83,7 +82,7 @@ async def update_calendar_item(
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.put("/items/{item_id}/phases/{phase_id}", dependencies=[Depends(verify_org_beheerder)])
+@router.put("/items/{item_id}/phases/{phase_id}")
 async def update_phase(
     org_id: int,
     item_id: int,

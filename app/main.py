@@ -68,6 +68,17 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
+
+# Strip trailing slashes from incoming requests so both /team and /team/ work.
+# This avoids FastAPI's built-in redirect_slashes which generates http:// URLs
+# behind Railway's HTTPS proxy.
+@app.middleware("http")
+async def strip_trailing_slash(request: Request, call_next):
+    path = request.scope.get("path", "")
+    if path != "/" and path.endswith("/"):
+        request.scope["path"] = path.rstrip("/")
+    return await call_next(request)
+
 # Rate limiting
 app.state.limiter = limiter
 

@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_platform_user
+from app.api.deps import get_current_user, get_db
 from app.models.category import InkoopCategory
 from app.models.supplier_master_category import SupplierMasterCategory
 from app.models.user import User
@@ -62,10 +62,10 @@ def _serialize(entry) -> dict:
 
 # ── List / Search (platform users) ─────────────────────────────────
 
-@router.get("/")
+@router.get("")
 async def list_master_entries(
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
     search: str = "",
     category_system: Optional[str] = Query(None, description="Categoriesysteem filter"),
     page: int = Query(1, ge=1),
@@ -87,7 +87,7 @@ async def list_master_entries(
 @router.get("/stats")
 async def master_stats(
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
     category_system: Optional[str] = Query(None, description="Categoriesysteem filter"),
 ):
     """Get aggregate statistics for the master database."""
@@ -97,11 +97,11 @@ async def master_stats(
 
 # ── Create (platform users) ────────────────────────────────────────
 
-@router.post("/")
+@router.post("")
 async def create_master_entry(
     req: CreateMasterEntryRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Manually add a new supplier-category mapping."""
     category = db.query(InkoopCategory).get(req.category_id)
@@ -135,7 +135,7 @@ async def update_master_entry(
     entry_id: int,
     req: UpdateMasterEntryRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Update an existing master entry."""
     service = SupplierMasterService(db)
@@ -158,7 +158,7 @@ async def update_master_entry(
 async def delete_master_entry(
     entry_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Delete a single master entry."""
     service = SupplierMasterService(db)
@@ -175,7 +175,7 @@ async def import_csv(
     file: UploadFile = File(...),
     category_system: str = Query("aedes", description="Categoriesysteem filter"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Upload a CSV file with supplier_name and category_nummer columns."""
     content = await file.read()
@@ -191,7 +191,7 @@ async def import_csv(
 @router.post("/backfill")
 async def backfill_from_existing(
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_user),
+    current_user: User = Depends(get_current_user),
 ):
     """One-time backfill: import all confirmed categorizations into master DB."""
     from app.models.supplier import Supplier

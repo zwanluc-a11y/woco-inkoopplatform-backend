@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, get_db, verify_platform_eigenaar
+from app.api.deps import get_current_user, get_db
 from app.config import settings
 from app.models.app_setting import AppSetting
 from app.models.user import User
@@ -61,7 +61,7 @@ def get_clerk_secret_key(db: Session) -> Optional[str]:
 
 
 @router.get("/status", response_model=AllSettingsStatus)
-def get_all_settings_status(user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def get_all_settings_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     anthropic_key = get_anthropic_api_key(db)
     clerk_key = get_clerk_secret_key(db)
     return AllSettingsStatus(
@@ -71,13 +71,13 @@ def get_all_settings_status(user: User = Depends(verify_platform_eigenaar), db: 
 
 
 @router.get("/api-key", response_model=ApiKeyStatus)
-def get_api_key_status(user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def get_api_key_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     key = get_anthropic_api_key(db)
     return ApiKeyStatus(configured=bool(key), masked_key=_mask_key(key) if key else None)
 
 
 @router.put("/api-key")
-def update_api_key(data: ApiKeyUpdate, user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def update_api_key(data: ApiKeyUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     new_key = data.api_key.strip()
     if not new_key.startswith("sk-ant-"):
         return {"success": False, "error": "Ongeldige API key. Moet beginnen met 'sk-ant-'."}
@@ -87,13 +87,13 @@ def update_api_key(data: ApiKeyUpdate, user: User = Depends(verify_platform_eige
 
 
 @router.get("/clerk-key", response_model=ApiKeyStatus)
-def get_clerk_key_status(user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def get_clerk_key_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     key = get_clerk_secret_key(db)
     return ApiKeyStatus(configured=bool(key), masked_key=_mask_key(key) if key else None)
 
 
 @router.put("/clerk-key")
-def update_clerk_key(data: ApiKeyUpdate, user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def update_clerk_key(data: ApiKeyUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     new_key = data.api_key.strip()
     if not new_key.startswith("sk_"):
         return {"success": False, "error": "Ongeldige Clerk key. Moet beginnen met 'sk_'."}

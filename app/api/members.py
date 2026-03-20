@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_eigenaar, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.models.user_organization import UserOrganization
 
@@ -16,11 +16,10 @@ VALID_ROLES = ("eigenaar", "beheerder", "kijker")
 router = APIRouter(
     prefix="/organizations/{org_id}/members",
     tags=["members"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
-@router.get("/")
+@router.get("")
 async def list_members(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -77,7 +76,7 @@ class UpdateRoleRequest(BaseModel):
     role: str
 
 
-@router.put("/{user_id}/role", dependencies=[Depends(verify_org_eigenaar)])
+@router.put("/{user_id}/role")
 async def update_member_role(
     org_id: int,
     user_id: int,
@@ -132,7 +131,7 @@ async def update_member_role(
     return {"detail": "Rol bijgewerkt"}
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(verify_org_eigenaar)])
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_member(
     org_id: int,
     user_id: int,

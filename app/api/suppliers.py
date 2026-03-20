@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
 from app.models.supplier_yearly_spend import SupplierYearlySpend
@@ -16,7 +16,6 @@ from app.schemas.transaction import TransactionResponse
 router = APIRouter(
     prefix="/organizations/{org_id}/suppliers",
     tags=["suppliers"],
-    dependencies=[Depends(verify_org_membership)],
 )
 
 
@@ -53,7 +52,7 @@ def _enrich_supplier(supplier: Supplier) -> dict:
     }
 
 
-@router.get("/")
+@router.get("")
 async def list_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -122,7 +121,7 @@ async def get_supplier_transactions(
     return query.order_by(Transaction.booking_date.desc()).all()
 
 
-@router.put("/{supplier_id}/category", dependencies=[Depends(verify_org_beheerder)], response_model=CategorizationResponse)
+@router.put("/{supplier_id}/category", response_model=CategorizationResponse)
 async def set_supplier_category(
     org_id: int,
     supplier_id: int,
@@ -170,7 +169,7 @@ async def set_supplier_category(
     return cat
 
 
-@router.post("/bulk-categorize", dependencies=[Depends(verify_org_beheerder)], response_model=list[CategorizationResponse])
+@router.post("/bulk-categorize", response_model=list[CategorizationResponse])
 async def bulk_categorize(
     org_id: int,
     data: BulkCategorizationRequest,

@@ -9,7 +9,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_eigenaar, verify_org_membership, verify_platform_user
+from app.api.deps import get_current_user, get_db
 from app.models.user_organization import UserOrganization
 from app.models.category_duration_setting import CategoryDurationSetting
 from app.models.contract import Contract
@@ -54,7 +54,7 @@ DEFAULT_THRESHOLDS = {
 }
 
 
-@router.get("/", response_model=list[OrganizationResponse])
+@router.get("", response_model=list[OrganizationResponse])
 async def list_organizations(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -72,11 +72,11 @@ async def list_organizations(
     )
 
 
-@router.post("/", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
 async def create_organization(
     data: OrganizationCreate,
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(verify_platform_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     org = Organization(
         name=data.name,
@@ -116,7 +116,7 @@ async def create_organization(
     return org
 
 
-@router.get("/{org_id}", response_model=OrganizationResponse, dependencies=[Depends(verify_org_membership)])
+@router.get("/{org_id}", response_model=OrganizationResponse)
 async def get_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -128,7 +128,7 @@ async def get_organization(
     return org
 
 
-@router.put("/{org_id}", response_model=OrganizationResponse, dependencies=[Depends(verify_org_beheerder)])
+@router.put("/{org_id}", response_model=OrganizationResponse)
 async def update_organization(
     org_id: int,
     data: OrganizationUpdate,
@@ -146,7 +146,7 @@ async def update_organization(
     return org
 
 
-@router.get("/{org_id}/thresholds", response_model=list[ThresholdResponse], dependencies=[Depends(verify_org_membership)])
+@router.get("/{org_id}/thresholds", response_model=list[ThresholdResponse])
 async def get_thresholds(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -155,7 +155,7 @@ async def get_thresholds(
     return db.query(Threshold).filter(Threshold.organization_id == org_id).all()
 
 
-@router.put("/{org_id}/thresholds/{threshold_id}", response_model=ThresholdResponse, dependencies=[Depends(verify_org_beheerder)])
+@router.put("/{org_id}/thresholds/{threshold_id}", response_model=ThresholdResponse)
 async def update_threshold(
     org_id: int,
     threshold_id: int,
@@ -177,7 +177,7 @@ async def update_threshold(
     return threshold
 
 
-@router.delete("/{org_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(verify_org_eigenaar)])
+@router.delete("/{org_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -247,7 +247,7 @@ def _brand_response(org):
     }
 
 
-@router.post("/{org_id}/brand/logo", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/{org_id}/brand/logo")
 async def upload_brand_logo(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
@@ -273,7 +273,7 @@ async def upload_brand_logo(
     return _brand_response(org)
 
 
-@router.post("/{org_id}/brand/screenshot", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/{org_id}/brand/screenshot")
 async def upload_brand_screenshot(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
@@ -312,7 +312,7 @@ async def upload_brand_screenshot(
 
 
 # Keep legacy endpoint for backwards compatibility
-@router.post("/{org_id}/brand", dependencies=[Depends(verify_org_beheerder)])
+@router.post("/{org_id}/brand")
 async def upload_brand_legacy(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
@@ -349,7 +349,7 @@ async def upload_brand_legacy(
     return _brand_response(org)
 
 
-@router.put("/{org_id}/brand-colors", dependencies=[Depends(verify_org_beheerder)])
+@router.put("/{org_id}/brand-colors")
 async def update_brand_colors(
     org_id: int,
     data: BrandColorsUpdate,
@@ -367,7 +367,7 @@ async def update_brand_colors(
     return _brand_response(org)
 
 
-@router.get("/{org_id}/brand", dependencies=[Depends(verify_org_membership)])
+@router.get("/{org_id}/brand")
 async def get_brand_info(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -412,7 +412,7 @@ def _restore_from_db(org, db):
         db.commit()
 
 
-@router.get("/{org_id}/brand/image/{image_type}", dependencies=[Depends(verify_org_membership)])
+@router.get("/{org_id}/brand/image/{image_type}")
 async def get_brand_image(
     org_id: int,
     image_type: Literal["logo", "screenshot"],

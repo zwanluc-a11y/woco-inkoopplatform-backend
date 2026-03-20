@@ -11,7 +11,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder
+from app.api.deps import get_current_user, get_db
 from app.config import settings
 from app.models.invitation import Invitation
 from app.models.user import User
@@ -24,7 +24,6 @@ MAX_INVITATION_EXPIRY_DAYS = 30  # Maximum invitation validity
 router = APIRouter(
     prefix="/organizations/{org_id}/invitations",
     tags=["invitations"],
-    dependencies=[Depends(verify_org_beheerder)],
 )
 
 
@@ -33,7 +32,7 @@ class CreateInvitationRequest(BaseModel):
     expires_in_days: int = Field(default=7, ge=1, le=MAX_INVITATION_EXPIRY_DAYS)
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/hour")
 async def create_invitation(
     request: Request,  # required by slowapi
@@ -77,7 +76,7 @@ async def create_invitation(
     }
 
 
-@router.get("/")
+@router.get("")
 async def list_invitations(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
