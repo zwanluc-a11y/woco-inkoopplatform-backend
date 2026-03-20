@@ -65,6 +65,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="WoCo Inkoopplatform API",
     lifespan=lifespan,
+    redirect_slashes=False,
 )
 
 # Rate limiting
