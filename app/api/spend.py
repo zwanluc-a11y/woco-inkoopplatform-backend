@@ -67,6 +67,21 @@ async def debug_test(org_id: int):
     return {"ok": True, "org_id": org_id, "message": "debug endpoint works"}
 
 
+@router.get("/debug-summary")
+async def debug_summary(
+    org_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Debug: same as summary but with explicit error handling."""
+    import logging as _log
+    _logger = _log.getLogger(__name__)
+    _logger.info("debug_summary: start for org_id=%s user=%s", org_id, current_user.id)
+
+    # Step 1: test auth only (return early)
+    return [{"year": 2025, "total_spend": 0, "supplier_count": 0, "transaction_count": 0}]
+
+
 @router.get("/pivot")
 async def spend_pivot(
     org_id: int,
