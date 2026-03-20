@@ -423,7 +423,6 @@ _NB_PATTERNS: list[tuple[str, str]] = [
     (r"rijksoverheid", "Rijksoverheid"),
     (r"rijkswaterstaat", "Rijkswaterstaat"),
     # Waterschappen
-    (r"woningcorporatie_groot", "Waterschap — waterschapsbelasting"),
     (r"hoogheemraadschap", "Hoogheemraadschap — waterbeheer"),
     # Gemeentelijke & provinciale heffingen
     (r"gemeente\b", "Gemeente — lokale heffingen & leges"),

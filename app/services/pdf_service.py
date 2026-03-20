@@ -55,14 +55,10 @@ CATEGORY_SYSTEM_LABELS = {
 }
 
 ORG_TYPE_LABELS = {
-    "woningcorporatie_klein": "Gemeente",
-    "woningcorporatie_groot": "Waterschap",
-    "woningcorporatie_middel": "Provincie",
-    "woningcorporatie": "Woningcorporatie",
-    "rijksoverheid": "Rijksoverheid",
-    "zorg": "Zorginstelling",
-    "onderwijs": "Onderwijsinstelling",
-    "overig": "Publieke organisatie",
+    "woningcorporatie_klein": "Woningcorporatie klein (< 5.000 VHE)",
+    "woningcorporatie_middel": "Woningcorporatie middel (5.000-20.000 VHE)",
+    "woningcorporatie_groot": "Woningcorporatie groot (> 20.000 VHE)",
+    "overig": "Overig",
 }
 
 logger = logging.getLogger(__name__)

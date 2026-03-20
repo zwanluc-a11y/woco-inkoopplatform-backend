@@ -35,37 +35,21 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
 
 # Default thresholds per organization type
 DEFAULT_THRESHOLDS = {
-    "rijksoverheid": {
-        "2024-2025": {"diensten_leveringen": 143000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 140000, "werken": 5404000, "ict_diensten": 750000},
-    },
     "woningcorporatie_klein": {
-        "2024-2025": {"diensten_leveringen": 221000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 216000, "werken": 5404000, "ict_diensten": 750000},
+        "2024-2025": {"diensten_leveringen": 50000, "werken": 150000, "ict_diensten": 50000, "advies_diensten": 50000},
+        "2026-2027": {"diensten_leveringen": 50000, "werken": 150000, "ict_diensten": 50000, "advies_diensten": 50000},
     },
     "woningcorporatie_middel": {
-        "2024-2025": {"diensten_leveringen": 221000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 216000, "werken": 5404000, "ict_diensten": 750000},
+        "2024-2025": {"diensten_leveringen": 100000, "werken": 500000, "ict_diensten": 100000, "advies_diensten": 100000},
+        "2026-2027": {"diensten_leveringen": 100000, "werken": 500000, "ict_diensten": 100000, "advies_diensten": 100000},
     },
     "woningcorporatie_groot": {
-        "2024-2025": {"diensten_leveringen": 221000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 216000, "werken": 5404000, "ict_diensten": 750000},
-    },
-    "stichting": {
-        "2024-2025": {"diensten_leveringen": 221000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 216000, "werken": 5404000, "ict_diensten": 750000},
-    },
-    "nutssector": {
-        "2024-2025": {"diensten_leveringen": 443000, "werken": 5538000, "ict_diensten": 1000000},
-        "2026-2027": {"diensten_leveringen": 432000, "werken": 5404000, "ict_diensten": 1000000},
-    },
-    "woningcorporatie": {
-        "2024-2025": {"diensten_leveringen": 221000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 216000, "werken": 5404000, "ict_diensten": 750000},
+        "2024-2025": {"diensten_leveringen": 200000, "werken": 1000000, "ict_diensten": 200000, "advies_diensten": 200000},
+        "2026-2027": {"diensten_leveringen": 200000, "werken": 1000000, "ict_diensten": 200000, "advies_diensten": 200000},
     },
     "overig": {
-        "2024-2025": {"diensten_leveringen": 221000, "werken": 5538000, "ict_diensten": 750000},
-        "2026-2027": {"diensten_leveringen": 216000, "werken": 5404000, "ict_diensten": 750000},
+        "2024-2025": {"diensten_leveringen": 100000, "werken": 500000, "ict_diensten": 100000, "advies_diensten": 100000},
+        "2026-2027": {"diensten_leveringen": 100000, "werken": 500000, "ict_diensten": 100000, "advies_diensten": 100000},
     },
 }
 
@@ -113,6 +97,7 @@ async def create_organization(
             diensten_leveringen=values["diensten_leveringen"],
             werken=values["werken"],
             ict_diensten=values["ict_diensten"],
+            advies_diensten=values.get("advies_diensten", 0),
             is_default=True,
         )
         db.add(threshold)

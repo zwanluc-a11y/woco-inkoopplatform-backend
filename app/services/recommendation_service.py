@@ -19,18 +19,15 @@ logger = logging.getLogger(__name__)
 
 # Org type labels for prompt context
 ORG_TYPE_LABELS = {
-    "woningcorporatie_klein": "gemeenten",
-    "woningcorporatie_groot": "waterschappen",
-    "woningcorporatie_middel": "provincies",
-    "woningcorporatie": "woningcorporaties",
-    "rijksoverheid": "rijksoverheidsorganisaties",
-    "zorg": "zorginstellingen",
-    "onderwijs": "onderwijsinstellingen",
-    "overig": "publieke organisaties",
+    "woningcorporatie_klein": "kleine woningcorporaties (< 5.000 VHE)",
+    "woningcorporatie_middel": "middelgrote woningcorporaties (5.000-20.000 VHE)",
+    "woningcorporatie_groot": "grote woningcorporaties (> 20.000 VHE)",
+    "overig": "woningcorporaties",
 }
 
 CATEGORY_SYSTEM_LABELS = {
-    "aedes": "PIANOo",
+    "aedes": "Aedes",
+    "bu_woco": "BU WOCO",
 }
 
 
