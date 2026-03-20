@@ -35,16 +35,23 @@ async def promote_first_admin(
 
 @router.get("/bootstrap")
 async def bootstrap_admin(db: Session = Depends(get_db)):
-    """One-time bootstrap: promote the first user in the DB to eigenaar. No auth needed. Only works once."""
+    """Bootstrap: promote first real user to eigenaar. Fixes ghost records with empty email."""
     existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
-    if existing_owner:
+    if existing_owner and existing_owner.email and existing_owner.clerk_id:
         return {"detail": "Er is al een platform eigenaar", "email": existing_owner.email}
-    first_user = db.query(User).order_by(User.id.asc()).first()
+    # Demote ghost record (no email or no clerk_id)
+    if existing_owner and (not existing_owner.email or not existing_owner.clerk_id):
+        existing_owner.platform_role = None
+        db.flush()
+    # Find first real user with clerk_id
+    first_user = db.query(User).filter(User.clerk_id.isnot(None), User.clerk_id != "").order_by(User.id.asc()).first()
     if not first_user:
-        raise HTTPException(status_code=404, detail="Geen gebruikers gevonden")
+        first_user = db.query(User).order_by(User.id.asc()).first()
+    if not first_user:
+        raise HTTPException(status_code=404, detail="Geen gebruikers gevonden. Log eerst in via de frontend.")
     first_user.platform_role = "eigenaar"
     db.commit()
-    return {"detail": f"{first_user.email} is nu platform eigenaar", "email": first_user.email, "platform_role": "eigenaar"}
+    return {"detail": f"{first_user.email or first_user.clerk_id} is nu platform eigenaar", "email": first_user.email, "platform_role": "eigenaar"}
 
 
 @router.get("/invite/{token}")
