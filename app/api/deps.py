@@ -108,6 +108,20 @@ def _resolve_user(payload: dict, db: Session) -> User:
     if not clerk_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Ongeldige token: geen gebruiker")
     email = _extract_email(payload, clerk_id)
+    # Auto-cleanup: demote ghost eigenaar records (no email or no clerk_id)
+    try:
+        ghost_demoted = db.execute(
+            text(
+                "UPDATE users SET platform_role = NULL "
+                "WHERE platform_role = 'eigenaar' "
+                "AND (email IS NULL OR email = '' OR clerk_id IS NULL OR clerk_id = '')"
+            )
+        )
+        if ghost_demoted.rowcount > 0:
+            db.commit()
+            logger.info("Demoted %d ghost eigenaar record(s)", ghost_demoted.rowcount)
+    except Exception:
+        db.rollback()
     user = db.query(User).filter(User.clerk_id == clerk_id).first()
     if user:
         updated = False
