@@ -58,21 +58,28 @@ def get_db():
         db.close()
 
 
-def _extract_email(payload: dict, clerk_id: str) -> str:
-    email = payload.get("email", "")
-    if not email:
-        email = payload.get("primary_email_address", "")
-    if not email:
+def _extract_user_info(payload: dict, clerk_id: str) -> dict:
+    """Extract email and name from JWT claims, falling back to Clerk API."""
+    info: dict = {"email": "", "first_name": "", "last_name": ""}
+
+    # Try JWT claims first
+    info["email"] = payload.get("email", "") or payload.get("primary_email_address", "")
+    info["first_name"] = payload.get("first_name", "")
+    info["last_name"] = payload.get("last_name", "")
+
+    if not info["email"]:
         email_addresses = payload.get("email_addresses", [])
         if email_addresses and isinstance(email_addresses, list):
             first_email = email_addresses[0] if email_addresses else {}
             if isinstance(first_email, dict):
-                email = first_email.get("email_address", "")
+                info["email"] = first_email.get("email_address", "")
             elif isinstance(first_email, str):
-                email = first_email
-    if not email:
+                info["email"] = first_email
+
+    # If email or name still missing, try Clerk API
+    if not info["email"] or not info["first_name"]:
         if not _CLERK_ID_PATTERN.match(clerk_id):
-            return email
+            return info
         clerk_secret = settings.CLERK_SECRET_KEY
         if not clerk_secret:
             try:
@@ -95,19 +102,28 @@ def _extract_email(payload: dict, clerk_id: str) -> str:
                 with urllib.request.urlopen(req, timeout=5) as resp:
                     if resp.status == 200:
                         data = _json.loads(resp.read())
-                        addrs = data.get("email_addresses", [])
-                        if addrs:
-                            email = addrs[0].get("email_address", "")
+                        if not info["email"]:
+                            addrs = data.get("email_addresses", [])
+                            if addrs:
+                                info["email"] = addrs[0].get("email_address", "")
+                        if not info["first_name"]:
+                            info["first_name"] = data.get("first_name", "") or ""
+                            info["last_name"] = data.get("last_name", "") or ""
             except Exception as e:
-                logger.warning("Failed to fetch email from Clerk API: %s", e)
-    return email
+                logger.warning("Failed to fetch user info from Clerk API: %s", e)
+    return info
 
 
 def _resolve_user(payload: dict, db: Session) -> User:
     clerk_id = payload.get("sub")
     if not clerk_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Ongeldige token: geen gebruiker")
-    email = _extract_email(payload, clerk_id)
+    user_info = _extract_user_info(payload, clerk_id)
+    email = user_info["email"]
+    display_name = f"{user_info['first_name']} {user_info['last_name']}".strip()
+    if not display_name and email:
+        display_name = email.split("@")[0]
+
     # Auto-cleanup: demote ghost eigenaar records (no email or no clerk_id)
     try:
         ghost_demoted = db.execute(
@@ -122,14 +138,15 @@ def _resolve_user(payload: dict, db: Session) -> User:
             logger.info("Demoted %d ghost eigenaar record(s)", ghost_demoted.rowcount)
     except Exception:
         db.rollback()
+
     user = db.query(User).filter(User.clerk_id == clerk_id).first()
     if user:
         updated = False
         if not user.email and email:
             user.email = email
             updated = True
-        if (not user.name or user.name == "Gebruiker") and email:
-            user.name = email.split("@")[0]
+        if (not user.name or user.name == "Gebruiker") and display_name:
+            user.name = display_name
             updated = True
         if not user.platform_role:
             try:
@@ -158,13 +175,7 @@ def _resolve_user(payload: dict, db: Session) -> User:
             db.commit()
             db.refresh(user)
             return user
-    name = ""
-    first = payload.get("first_name", "")
-    last = payload.get("last_name", "")
-    if first or last:
-        name = f"{first} {last}".strip()
-    if not name:
-        name = email.split("@")[0] if email else "Gebruiker"
+    name = display_name or (email.split("@")[0] if email else "Gebruiker")
     # Auto-promote first user to platform eigenaar
     existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
     initial_role = "eigenaar" if not existing_owner else None

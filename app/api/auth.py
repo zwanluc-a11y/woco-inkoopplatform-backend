@@ -18,6 +18,26 @@ async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
 
+@router.put("/me", response_model=UserResponse)
+async def update_me(
+    body: dict,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Sync user profile from Clerk (name/email)."""
+    updated = False
+    if "name" in body and body["name"] and (not current_user.name or current_user.name == "Gebruiker"):
+        current_user.name = body["name"]
+        updated = True
+    if "email" in body and body["email"] and not current_user.email:
+        current_user.email = body["email"]
+        updated = True
+    if updated:
+        db.commit()
+        db.refresh(current_user)
+    return current_user
+
+
 @router.post("/promote-first-admin")
 async def promote_first_admin(
     current_user: Annotated[User, Depends(get_current_user)],
