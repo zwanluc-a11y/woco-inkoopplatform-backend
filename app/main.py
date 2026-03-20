@@ -106,10 +106,22 @@ app.add_middleware(
 )
 
 
-# Security headers
+# Fix HTTPS redirects behind reverse proxy (Railway)
+# FastAPI's trailing-slash redirects generate http:// URLs because the
+# app doesn't know it's behind an HTTPS proxy.  This middleware rewrites
+# Location headers to https:// when X-Forwarded-Proto indicates HTTPS.
 @app.middleware("http")
-async def add_security_headers(request: Request, call_next):
+async def fix_https_redirects(request: Request, call_next):
     response: Response = await call_next(request)
+    if (
+        response.status_code in (301, 302, 307, 308)
+        and "location" in response.headers
+        and request.headers.get("x-forwarded-proto") == "https"
+    ):
+        loc = response.headers["location"]
+        if loc.startswith("http://"):
+            response.headers["location"] = "https://" + loc[7:]
+    # Security headers
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
