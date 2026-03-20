@@ -29,27 +29,42 @@ async def spend_summary(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    rows = (
-        db.query(
-            SupplierYearlySpend.year,
-            func.sum(SupplierYearlySpend.total_amount).label("total_spend"),
-            func.count(SupplierYearlySpend.supplier_id.distinct()).label("supplier_count"),
-            func.sum(SupplierYearlySpend.transaction_count).label("transaction_count"),
+    import logging as _log
+    _logger = _log.getLogger(__name__)
+    try:
+        _logger.info("spend_summary called for org_id=%s, user=%s", org_id, current_user.id)
+        rows = (
+            db.query(
+                SupplierYearlySpend.year,
+                func.sum(SupplierYearlySpend.total_amount).label("total_spend"),
+                func.count(SupplierYearlySpend.supplier_id.distinct()).label("supplier_count"),
+                func.sum(SupplierYearlySpend.transaction_count).label("transaction_count"),
+            )
+            .filter(SupplierYearlySpend.organization_id == org_id)
+            .group_by(SupplierYearlySpend.year)
+            .order_by(SupplierYearlySpend.year)
+            .all()
         )
-        .filter(SupplierYearlySpend.organization_id == org_id)
-        .group_by(SupplierYearlySpend.year)
-        .order_by(SupplierYearlySpend.year)
-        .all()
-    )
-    return [
-        {
-            "year": r.year,
-            "total_spend": float(r.total_spend or 0),
-            "supplier_count": r.supplier_count,
-            "transaction_count": r.transaction_count,
-        }
-        for r in rows
-    ]
+        result = [
+            {
+                "year": r.year,
+                "total_spend": float(r.total_spend or 0),
+                "supplier_count": r.supplier_count,
+                "transaction_count": r.transaction_count,
+            }
+            for r in rows
+        ]
+        _logger.info("spend_summary returning %d rows", len(result))
+        return result
+    except Exception as e:
+        _logger.exception("spend_summary CRASHED: %s", e)
+        raise
+
+
+@router.get("/debug-test")
+async def debug_test(org_id: int):
+    """No-auth debug endpoint to test connectivity."""
+    return {"ok": True, "org_id": org_id, "message": "debug endpoint works"}
 
 
 @router.get("/pivot")
