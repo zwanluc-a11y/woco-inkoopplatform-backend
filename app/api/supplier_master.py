@@ -51,7 +51,7 @@ def _serialize(entry) -> dict:
         "category_id": entry.category_id,
         "category_nummer": entry.category_nummer,
         "category_name": entry.category_name,
-        "category_system": "aedes",
+        "category_system": entry.category_system,
         "usage_count": entry.usage_count,
         "source": entry.source,
         "notes": entry.notes,
@@ -73,7 +73,7 @@ def list_master_entries(
 ):
     """List/search all master database entries (paginated)."""
     service = SupplierMasterService(db)
-    entries, total = service.search(search, page, page_size)
+    entries, total = service.search(search, page, page_size, category_system=category_system)
     return {
         "entries": [_serialize(e) for e in entries],
         "total": total,
@@ -92,7 +92,7 @@ def master_stats(
 ):
     """Get aggregate statistics for the master database."""
     service = SupplierMasterService(db)
-    return service.get_stats()
+    return service.get_stats(category_system=category_system)
 
 
 # ── Create (platform users) ────────────────────────────────────────
@@ -173,7 +173,7 @@ def delete_master_entry(
 @router.post("/import-csv")
 def import_csv(
     file: UploadFile = File(...),
-    category_system: str = Query("aedes", description="Categoriesysteem filter"),
+    category_system: str = Query("woco", description="Categoriesysteem filter"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -183,7 +183,7 @@ def import_csv(
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="CSV bestand is te groot. Maximum is 5 MB.")
     service = SupplierMasterService(db)
-    return service.bulk_upsert_from_csv(content)
+    return service.bulk_upsert_from_csv(content, category_system=category_system)
 
 
 # ── Backfill from existing categorizations (platform users) ────────
@@ -261,7 +261,7 @@ def backfill_from_existing(
                 category_id=category.id,
                 category_nummer=category.nummer,
                 category_name=category.inkooppakket,
-                category_system="aedes",
+                category_system=category.category_system or "woco",
                 usage_count=1,
                 source="auto",
             )

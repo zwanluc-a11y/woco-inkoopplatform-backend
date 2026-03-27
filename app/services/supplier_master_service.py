@@ -38,7 +38,7 @@ class SupplierMasterService:
         category_nummer: str,
         category_name: str,
         source: str = "auto",
-        category_system: str = "aedes",
+        category_system: str = "woco",
     ) -> SupplierMasterCategory:
         """Add or update a supplier-category mapping. Increments usage_count if exists."""
         existing = (
@@ -46,7 +46,7 @@ class SupplierMasterService:
             .filter(
                 SupplierMasterCategory.normalized_name == normalized_name,
                 SupplierMasterCategory.category_id == category_id,
-                SupplierMasterCategory.category_system == "aedes",
+                SupplierMasterCategory.category_system == category_system,
             )
             .first()
         )
@@ -63,7 +63,7 @@ class SupplierMasterService:
                 category_id=category_id,
                 category_nummer=category_nummer,
                 category_name=category_name,
-                category_system="aedes",
+                category_system=category_system,
                 usage_count=1,
                 source=source,
             )
@@ -100,30 +100,25 @@ class SupplierMasterService:
         self, normalized_name: str, category_system: str | None = None
     ) -> list[SupplierMasterCategory]:
         """Find all category mappings for a normalized supplier name."""
-        q = (
-            self.db.query(SupplierMasterCategory)
-            .filter(
-                SupplierMasterCategory.normalized_name == normalized_name,
-                SupplierMasterCategory.category_system == "aedes",
-            )
+        q = self.db.query(SupplierMasterCategory).filter(
+            SupplierMasterCategory.normalized_name == normalized_name,
         )
+        if category_system:
+            q = q.filter(SupplierMasterCategory.category_system == category_system)
         return q.order_by(SupplierMasterCategory.usage_count.desc()).all()
 
     def bulk_lookup(
-        self, normalized_names: list[str], category_system: str = "aedes"
+        self, normalized_names: list[str], category_system: str | None = None
     ) -> dict[str, list[SupplierMasterCategory]]:
         """Lookup multiple supplier names at once (efficient IN-clause)."""
         if not normalized_names:
             return {}
-        entries = (
-            self.db.query(SupplierMasterCategory)
-            .filter(
-                SupplierMasterCategory.normalized_name.in_(normalized_names),
-                SupplierMasterCategory.category_system == "aedes",
-            )
-            .order_by(SupplierMasterCategory.usage_count.desc())
-            .all()
+        q = self.db.query(SupplierMasterCategory).filter(
+            SupplierMasterCategory.normalized_name.in_(normalized_names),
         )
+        if category_system:
+            q = q.filter(SupplierMasterCategory.category_system == category_system)
+        entries = q.order_by(SupplierMasterCategory.usage_count.desc()).all()
         result: dict[str, list[SupplierMasterCategory]] = {}
         for e in entries:
             result.setdefault(e.normalized_name, []).append(e)
@@ -139,9 +134,9 @@ class SupplierMasterService:
         category_system: str | None = None,
     ) -> tuple[list[SupplierMasterCategory], int]:
         """Search master DB by supplier name or category name."""
-        q = self.db.query(SupplierMasterCategory).filter(
-            SupplierMasterCategory.category_system == "aedes"
-        )
+        q = self.db.query(SupplierMasterCategory)
+        if category_system:
+            q = q.filter(SupplierMasterCategory.category_system == category_system)
         if query:
             pattern = f"%{query}%"
             q = q.filter(
@@ -164,9 +159,9 @@ class SupplierMasterService:
 
     def get_stats(self, category_system: str | None = None) -> dict:
         """Get aggregate statistics for the master DB."""
-        base = self.db.query(SupplierMasterCategory).filter(
-            SupplierMasterCategory.category_system == "aedes"
-        )
+        base = self.db.query(SupplierMasterCategory)
+        if category_system:
+            base = base.filter(SupplierMasterCategory.category_system == category_system)
 
         total_entries = base.count()
         unique_suppliers = (
@@ -232,7 +227,7 @@ class SupplierMasterService:
     # ── CSV Import ──────────────────────────────────────────────────
 
     def bulk_upsert_from_csv(
-        self, file_bytes: bytes, category_system: str = "aedes"
+        self, file_bytes: bytes, category_system: str = "woco"
     ) -> dict:
         """
         Process a CSV with supplier_name and category_nummer columns.
@@ -266,12 +261,11 @@ class SupplierMasterService:
                 ],
             }
 
-        # Build InkoopCategory lookup by nummer (PIANOo only)
-        categories = (
-            self.db.query(InkoopCategory)
-            .filter(InkoopCategory.category_system == "aedes")
-            .all()
-        )
+        # Build InkoopCategory lookup by nummer
+        cat_q = self.db.query(InkoopCategory)
+        if category_system:
+            cat_q = cat_q.filter(InkoopCategory.category_system == category_system)
+        categories = cat_q.all()
         cat_by_nummer = {c.nummer.strip(): c for c in categories}
 
         created = 0
@@ -300,7 +294,7 @@ class SupplierMasterService:
                 .filter(
                     SupplierMasterCategory.normalized_name == normalized,
                     SupplierMasterCategory.category_id == category.id,
-                    SupplierMasterCategory.category_system == "aedes",
+                    SupplierMasterCategory.category_system == category_system,
                 )
                 .first()
             )
@@ -318,7 +312,7 @@ class SupplierMasterService:
                     category_id=category.id,
                     category_nummer=category.nummer,
                     category_name=category.inkooppakket,
-                    category_system="aedes",
+                    category_system=category_system,
                     usage_count=1,
                     source="imported",
                     notes=notes_val,
