@@ -530,9 +530,9 @@ class ImportService:
             if amount is None:
                 continue
 
-            # Flip sign if accounting convention detected
+            # Flip sign if accounting convention detected (× -1, not abs)
             if should_flip:
-                amount = abs(amount)
+                amount = -amount
 
             supplier_code = None
             if code_col:
@@ -653,18 +653,18 @@ class ImportService:
     @staticmethod
     def _detect_sign_flip(df: pd.DataFrame, amount_columns: list[str]) -> bool:
         """
-        Detect if all amounts in the data are negative (accounting convention
+        Detect if the majority of amounts are negative (accounting convention
         where expenses are shown as negative). If so, return True to indicate
-        that amounts should be flipped to positive.
+        that all signs should be flipped (× -1).
 
         Rules:
-        - If ALL non-zero amounts are negative → flip (accounting convention)
-        - If it's a MIX of positive and negative → don't flip (negatives are credits/refunds)
-        - If ALL are positive → don't flip (normal)
+        - If ≥90% of non-zero amounts are negative → flip (accounting convention)
+          This handles the common case where expenses are negative and a few
+          credits/refunds are positive.
+        - Otherwise → don't flip
         """
-        has_positive = False
-        has_negative = False
-        parsed_count = 0
+        positive_count = 0
+        negative_count = 0
         skipped_count = 0
         sample_values = []
 
@@ -680,28 +680,28 @@ class ImportService:
                     continue
                 if num == 0:
                     continue
-                parsed_count += 1
-                if parsed_count <= 5:
+                if len(sample_values) < 5:
                     sample_values.append((val, num))
                 if num > 0:
-                    has_positive = True
-                if num < 0:
-                    has_negative = True
-                # Early exit: mixed means no flip
-                if has_positive and has_negative:
-                    logger.info("_detect_sign_flip: mixed signs detected, no flip. Samples: %s", sample_values)
-                    return False
+                    positive_count += 1
+                else:
+                    negative_count += 1
+
+        total = positive_count + negative_count
+        negative_pct = (negative_count / total * 100) if total > 0 else 0
 
         logger.info(
-            "_detect_sign_flip: parsed=%d, skipped=%d, has_positive=%s, has_negative=%s, samples=%s",
-            parsed_count, skipped_count, has_positive, has_negative, sample_values,
+            "_detect_sign_flip: total=%d (negative=%d, positive=%d, %.1f%% negative), "
+            "skipped=%d, samples=%s",
+            total, negative_count, positive_count, negative_pct,
+            skipped_count, sample_values,
         )
 
-        # Only flip if we have negatives and NO positives
-        if has_negative and not has_positive:
+        # If ≥90% of amounts are negative, it's an accounting convention
+        if total > 0 and negative_pct >= 90:
             logger.info(
-                "All %d amounts are negative — detected accounting convention, "
-                "flipping signs to positive.", parsed_count,
+                "%.1f%% of %d amounts are negative — detected accounting convention, "
+                "flipping ALL signs (× -1).", negative_pct, total,
             )
             return True
         return False
