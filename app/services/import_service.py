@@ -462,7 +462,7 @@ class ImportService:
         """Process transaction-level data (boekingsregels)."""
         supplier_name_col = mapping.get("supplier_name")
         amount_col = mapping.get("amount")
-        
+
         if not supplier_name_col or not amount_col:
             raise ValueError("Leveranciersnaam en bedrag kolommen zijn verplicht")
 
@@ -472,6 +472,9 @@ class ImportService:
         code_col = mapping.get("supplier_code")
         account_col = mapping.get("account_code")
         cost_col = mapping.get("cost_center")
+
+        # Detect if all amounts are negative (accounting convention)
+        should_flip = self._detect_sign_flip(df, [amount_col])
 
         # Cache suppliers for this org — index by BOTH code and normalized name
         suppliers_by_code: dict[str, Supplier] = {}
@@ -492,6 +495,10 @@ class ImportService:
                 amount = float(amount_val)
             except (ValueError, TypeError):
                 continue
+
+            # Flip sign if accounting convention detected
+            if should_flip:
+                amount = abs(amount)
 
             supplier_code = None
             if code_col:
@@ -609,6 +616,48 @@ class ImportService:
         self.db.commit()
         logger.info("Imported %d transactions for org %d", created, org_id)
 
+    @staticmethod
+    def _detect_sign_flip(df: pd.DataFrame, amount_columns: list[str]) -> bool:
+        """
+        Detect if all amounts in the data are negative (accounting convention
+        where expenses are shown as negative). If so, return True to indicate
+        that amounts should be flipped to positive.
+
+        Rules:
+        - If ALL non-zero amounts are negative → flip (accounting convention)
+        - If it's a MIX of positive and negative → don't flip (negatives are credits/refunds)
+        - If ALL are positive → don't flip (normal)
+        """
+        has_positive = False
+        has_negative = False
+
+        for col in amount_columns:
+            for val in df[col]:
+                if pd.isna(val):
+                    continue
+                try:
+                    num = float(val)
+                except (ValueError, TypeError):
+                    continue
+                if num == 0:
+                    continue
+                if num > 0:
+                    has_positive = True
+                if num < 0:
+                    has_negative = True
+                # Early exit: mixed means no flip
+                if has_positive and has_negative:
+                    return False
+
+        # Only flip if we have negatives and NO positives
+        if has_negative and not has_positive:
+            logger.info(
+                "All amounts are negative — detected accounting convention, "
+                "flipping signs to positive."
+            )
+            return True
+        return False
+
     def _process_spend_analysis(
         self,
         df: pd.DataFrame,
@@ -621,15 +670,18 @@ class ImportService:
         supplier_name_col = mapping.get("supplier_name")
         if not supplier_name_col:
             raise ValueError("Leveranciersnaam kolom is verplicht")
-        
+
         # Detect year columns (columns named "2019", "2020", etc.)
         year_columns = [
             c for c in df.columns
             if re.match(r"^20\d{2}$", str(c).strip())
         ]
-        
+
         if not year_columns:
             raise ValueError("Geen jaarkolommen gevonden (bijv. 2019, 2020, ...)")
+
+        # Detect if all amounts are negative (accounting convention)
+        should_flip = self._detect_sign_flip(df, year_columns)
 
         existing_suppliers: dict[str, Supplier] = {}
         for s in self.db.query(Supplier).filter(Supplier.organization_id == org_id).all():
@@ -672,6 +724,10 @@ class ImportService:
                 if amount == 0:
                     continue
 
+                # Flip sign if accounting convention detected
+                if should_flip:
+                    amount = abs(amount)
+
                 yr = int(str(yc).strip())
                 key = (supplier.id, yr)
 
@@ -702,7 +758,10 @@ class ImportService:
                 self.db.commit()
 
         self.db.commit()
-        logger.info("Imported spend analysis for org %d (%d records)", org_id, count)
+        logger.info(
+            "Imported spend analysis for org %d (%d records%s)",
+            org_id, count, ", signs flipped" if should_flip else "",
+        )
 
     def _process_contract_register(
         self,
