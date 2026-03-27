@@ -42,11 +42,6 @@ def _normalize_name(name: str) -> str:
 # ── Woningcorporaties ───────────────────────────────────────────────
 def seed_woningcorporaties(db: Session) -> None:
     """Seed the 259 Dutch housing corporations from bronbestand."""
-    count = db.query(WoningCorporatie).count()
-    if count > 0:
-        logger.info("woningcorporaties table has %d rows – skipping seed.", count)
-        return
-
     if not CORPORATIES_JSON_PATH.exists():
         logger.warning("No corporaties seed data at '%s'", CORPORATIES_JSON_PATH)
         return
@@ -54,17 +49,28 @@ def seed_woningcorporaties(db: Session) -> None:
     with open(CORPORATIES_JSON_PATH, "r", encoding="utf-8") as f:
         corps = json.load(f)
 
+    inserted = 0
     for c in corps:
+        l_nummer = c.get("l_nummer", "").strip()
+        if not l_nummer:
+            # Generate a placeholder for entries without L-nummer
+            l_nummer = f"X_{c['naam'][:20].replace(' ', '_')}"
+        # Skip if already exists
+        existing = db.query(WoningCorporatie).filter(WoningCorporatie.l_nummer == l_nummer).first()
+        if existing:
+            continue
         db.add(WoningCorporatie(
-            l_nummer=c["l_nummer"],
+            l_nummer=l_nummer,
             naam=c["naam"],
             provincie=c.get("provincie", ""),
             grootte_klasse=c.get("grootte_klasse", ""),
             aantal_vhe=c.get("aantal_vhe", ""),
         ))
+        inserted += 1
 
-    db.commit()
-    logger.info("Seeded %d woningcorporaties.", len(corps))
+    if inserted > 0:
+        db.commit()
+    logger.info("Seeded %d woningcorporaties (skipped %d existing).", inserted, len(corps) - inserted)
 
 
 # ── WoCo sector categories ──────────────────────────────────────────
