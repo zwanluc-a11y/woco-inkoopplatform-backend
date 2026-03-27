@@ -18,7 +18,7 @@ from app.models.category import InkoopCategory
 from app.models.supplier_master_category import SupplierMasterCategory
 from app.models.user import User
 from app.services.import_service import normalize_supplier_name
-from app.services.supplier_master_service import SupplierMasterService
+from app.services.supplier_master_service import SupplierMasterService, suggest_category_for_name
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,15 @@ class UpdateMasterEntryRequest(BaseModel):
 
 class BulkLookupRequest(BaseModel):
     normalized_names: list[str]
+
+
+class SuggestCategoryRequest(BaseModel):
+    supplier_names: list[str]
+
+
+class BulkCategorizeRequest(BaseModel):
+    """Apply AI-suggested categories to multiple entries at once."""
+    assignments: list[dict]  # [{"entry_id": int, "category_id": int}, ...]
 
 
 def _serialize(entry) -> dict:
@@ -299,4 +308,97 @@ def bulk_lookup(
     return {
         name: [_serialize(e) for e in entries]
         for name, entries in results.items()
+    }
+
+
+# ── AI Category Suggestions ──────────────────────────────────────────
+
+@router.post("/suggest-categories")
+def suggest_categories(
+    req: SuggestCategoryRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    category_system: str = Query("woco", description="Categoriesysteem"),
+):
+    """
+    Suggest WoCo categories for a list of supplier names using AI keyword matching.
+    Returns a dict: { "supplier_name": { category_nummer, category_naam, category_id, confidence } }
+    """
+    # Build category lookup
+    cats = (
+        db.query(InkoopCategory)
+        .filter(InkoopCategory.category_system == category_system)
+        .all()
+    )
+    cats_by_nummer = {
+        c.nummer: {"inkooppakket": c.inkooppakket, "id": c.id}
+        for c in cats
+    }
+
+    results = {}
+    for name in req.supplier_names:
+        suggestion = suggest_category_for_name(name, cats_by_nummer)
+        if suggestion:
+            results[name] = suggestion
+        else:
+            results[name] = None
+
+    return results
+
+
+@router.post("/bulk-categorize")
+def bulk_categorize(
+    req: BulkCategorizeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Apply category assignments to multiple supplier master entries at once.
+    Each assignment: { entry_id: int, category_id: int }
+    """
+    service = SupplierMasterService(db)
+
+    # Pre-load all categories
+    cat_ids = {a["category_id"] for a in req.assignments if a.get("category_id")}
+    categories_by_id = {
+        c.id: c
+        for c in db.query(InkoopCategory).filter(InkoopCategory.id.in_(cat_ids)).all()
+    } if cat_ids else {}
+
+    updated = 0
+    skipped = 0
+    errors = []
+
+    for assignment in req.assignments:
+        entry_id = assignment.get("entry_id")
+        category_id = assignment.get("category_id")
+
+        if not entry_id or not category_id:
+            skipped += 1
+            continue
+
+        category = categories_by_id.get(category_id)
+        if not category:
+            errors.append(f"Categorie {category_id} niet gevonden")
+            continue
+
+        entry = service.update_entry(
+            entry_id,
+            category_id=category.id,
+        )
+        if entry:
+            updated += 1
+        else:
+            errors.append(f"Entry {entry_id} niet gevonden")
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {
+        "updated": updated,
+        "skipped": skipped,
+        "errors": errors,
     }
