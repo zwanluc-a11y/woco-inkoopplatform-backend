@@ -35,8 +35,8 @@ async def seed_initial_data() -> None:
         db.close()
 
 
-def _sqlite_add_missing_columns() -> None:
-    """Add columns to existing SQLite tables (create_all won't do this)."""
+def _add_missing_columns() -> None:
+    """Add columns to existing tables (create_all won't do this for existing tables)."""
     from sqlalchemy import text
     conn = engine.connect()
     columns_to_add = [
@@ -49,7 +49,7 @@ def _sqlite_add_missing_columns() -> None:
     for table, col, col_type in columns_to_add:
         try:
             conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
-            logger.info("SQLite: added column %s.%s", table, col)
+            logger.info("Added column %s.%s", table, col)
         except Exception:
             pass
     conn.commit()
@@ -60,8 +60,7 @@ def _sqlite_add_missing_columns() -> None:
 async def lifespan(app: FastAPI):
     logger.info("Creating database tables (create_all) ...")
     Base.metadata.create_all(bind=engine)
-    if app_settings.DATABASE_URL.startswith("sqlite"):
-        _sqlite_add_missing_columns()
+    _add_missing_columns()
     logger.info("Running seed_initial_data ...")
     await seed_initial_data()
     yield
