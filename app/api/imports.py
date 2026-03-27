@@ -45,7 +45,7 @@ def upload_excel(
     # Save uploaded file to temp location
     suffix = Path(file.filename).suffix
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-    content = await file.read()
+    content = file.file.read()
 
     # Limit file size to 50 MB
     if len(content) > 50 * 1024 * 1024:

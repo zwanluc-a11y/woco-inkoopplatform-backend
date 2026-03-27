@@ -260,7 +260,7 @@ def upload_brand_logo(
         raise HTTPException(status_code=404, detail="Organisatie niet gevonden")
 
     _validate_image(file)
-    content = await file.read()
+    content = file.file.read()
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="Afbeelding is te groot. Maximum is 5 MB.")
     org.brand_logo_path = _save_brand_upload(content, org_id, file.filename or "logo.png", "logo")
@@ -286,7 +286,7 @@ def upload_brand_screenshot(
         raise HTTPException(status_code=404, detail="Organisatie niet gevonden")
 
     _validate_image(file)
-    content = await file.read()
+    content = file.file.read()
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="Afbeelding is te groot. Maximum is 5 MB.")
     file_path = _save_brand_upload(content, org_id, file.filename or "screenshot.png", "screenshot")
@@ -325,7 +325,7 @@ def upload_brand_legacy(
         raise HTTPException(status_code=404, detail="Organisatie niet gevonden")
 
     _validate_image(file)
-    content = await file.read()
+    content = file.file.read()
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="Afbeelding is te groot. Maximum is 5 MB.")
     file_path = _save_brand_upload(content, org_id, file.filename or "logo.png", "logo")

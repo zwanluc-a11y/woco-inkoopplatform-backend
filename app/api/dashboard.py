@@ -639,7 +639,7 @@ def generate_recommendations(
         raise HTTPException(status_code=404, detail="Organisatie niet gevonden")
 
     # Get overview data (reuse the existing overview logic)
-    overview_data = await organization_overview(org_id, db, current_user)
+    overview_data = organization_overview(org_id, db, current_user)
 
     try:
         recommendations = gen_recs(db, org, overview_data)

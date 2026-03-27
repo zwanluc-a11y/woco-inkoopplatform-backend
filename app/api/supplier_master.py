@@ -178,7 +178,7 @@ def import_csv(
     current_user: User = Depends(get_current_user),
 ):
     """Upload a CSV file with supplier_name and category_nummer columns."""
-    content = await file.read()
+    content = file.file.read()
     # Limit CSV file size to 5MB
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="CSV bestand is te groot. Maximum is 5 MB.")
