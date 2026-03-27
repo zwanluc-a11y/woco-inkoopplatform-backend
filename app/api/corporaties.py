@@ -12,7 +12,7 @@ router = APIRouter(prefix="/corporaties", tags=["corporaties"])
 
 
 @router.get("")
-async def list_corporaties(
+def list_corporaties(
     db: Session = Depends(get_db),
     search: Optional[str] = Query(None, min_length=1),
     provincie: Optional[str] = None,

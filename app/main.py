@@ -177,3 +177,20 @@ app.include_router(referentie.router, prefix="/api")
 @app.get("/")
 async def root():
     return {"message": "WoCo Inkoopplatform API is running"}
+
+
+@app.get("/debug/seed-status")
+def seed_status():
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        counts = {}
+        for table in ["woningcorporaties", "inkoop_categories", "supplier_master_categories", "users", "organizations"]:
+            try:
+                row = db.execute(text(f"SELECT count(*) FROM {table}")).scalar()
+                counts[table] = row
+            except Exception as e:
+                counts[table] = str(e)
+        return counts
+    finally:
+        db.close()
