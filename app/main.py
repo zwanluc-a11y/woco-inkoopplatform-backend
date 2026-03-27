@@ -26,11 +26,12 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
 async def seed_initial_data() -> None:
     db = SessionLocal()
     try:
-        seed_woningcorporaties(db)
-        seed_inkoop_categories(db)
-        seed_leveranciers(db)
-        seed_user_organizations(db)
-        seed_platform_eigenaar(db)
+        for seed_fn in [seed_woningcorporaties, seed_inkoop_categories, seed_leveranciers, seed_user_organizations, seed_platform_eigenaar]:
+            try:
+                seed_fn(db)
+            except Exception as e:
+                logger.error("Seed function %s failed: %s", seed_fn.__name__, e)
+                db.rollback()
     finally:
         db.close()
 
