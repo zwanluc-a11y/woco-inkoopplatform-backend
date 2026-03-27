@@ -128,18 +128,48 @@ CONTRACT_TYPE_MAP: dict[str, str] = {
 
 
 def _parse_currency(val: Any) -> Optional[float]:
-    """Parse a currency value supporting NL and EN formats."""
+    """Parse a currency value supporting NL and EN formats.
+
+    Handles: -1234.56, -1.234,56, "- € 1.234,56", "1.234,56-", etc.
+    """
     if pd.isna(val):
         return None
-    s = str(val).strip().replace("€", "").replace("EUR", "").strip()
+
+    # If it's already a number (float/int from pandas), return directly
+    if isinstance(val, (int, float)):
+        return float(val)
+
+    s = str(val).strip()
+    # Remove currency symbols and whitespace around them
+    s = s.replace("€", "").replace("EUR", "").replace("eur", "").strip()
+    # Remove any non-breaking spaces and regular spaces around minus
+    s = s.replace("\u00a0", " ").strip()
+
+    # Detect trailing minus: "1.234,56-" or "1234.56-"
+    is_negative = False
+    if s.endswith("-"):
+        is_negative = True
+        s = s[:-1].strip()
+    elif s.startswith("-") or s.startswith("−"):  # regular or unicode minus
+        is_negative = True
+        s = s[1:].strip()
+
+    # Remove any remaining spaces (e.g., "1 234,56")
+    s = s.replace(" ", "")
+
+    if not s:
+        return None
+
     # Try as float directly
     try:
-        return float(s)
+        result = float(s)
+        return -result if is_negative else result
     except ValueError:
         pass
     # Try NL format: 150.000,00 → remove dots, replace comma with dot
     try:
-        return float(s.replace(".", "").replace(",", "."))
+        result = float(s.replace(".", "").replace(",", "."))
+        return -result if is_negative else result
     except ValueError:
         return None
 
@@ -438,6 +468,11 @@ class ImportService:
         import_session.progress_current = 0
         self.db.commit()
 
+        logger.info(
+            "Processing import session %s: file_type=%s, columns=%s, mapping=%s",
+            import_session.id, import_session.file_type, list(df.columns), column_mapping,
+        )
+
         if is_contract:
             self._process_contract_register(df, column_mapping, org_id, import_session.id)
         elif import_session.file_type == "transactions":
@@ -629,6 +664,9 @@ class ImportService:
         """
         has_positive = False
         has_negative = False
+        parsed_count = 0
+        skipped_count = 0
+        sample_values = []
 
         for col in amount_columns:
             for val in df[col]:
@@ -636,22 +674,34 @@ class ImportService:
                     continue
                 num = _parse_currency(val)
                 if num is None:
+                    skipped_count += 1
+                    if skipped_count <= 5:
+                        logger.warning("_detect_sign_flip: could not parse value: %r (type=%s)", val, type(val).__name__)
                     continue
                 if num == 0:
                     continue
+                parsed_count += 1
+                if parsed_count <= 5:
+                    sample_values.append((val, num))
                 if num > 0:
                     has_positive = True
                 if num < 0:
                     has_negative = True
                 # Early exit: mixed means no flip
                 if has_positive and has_negative:
+                    logger.info("_detect_sign_flip: mixed signs detected, no flip. Samples: %s", sample_values)
                     return False
+
+        logger.info(
+            "_detect_sign_flip: parsed=%d, skipped=%d, has_positive=%s, has_negative=%s, samples=%s",
+            parsed_count, skipped_count, has_positive, has_negative, sample_values,
+        )
 
         # Only flip if we have negatives and NO positives
         if has_negative and not has_positive:
             logger.info(
-                "All amounts are negative — detected accounting convention, "
-                "flipping signs to positive."
+                "All %d amounts are negative — detected accounting convention, "
+                "flipping signs to positive.", parsed_count,
             )
             return True
         return False
@@ -678,8 +728,19 @@ class ImportService:
         if not year_columns:
             raise ValueError("Geen jaarkolommen gevonden (bijv. 2019, 2020, ...)")
 
+        logger.info(
+            "Spend analysis: year_columns=%s, rows=%d, columns=%s",
+            year_columns, len(df), list(df.columns),
+        )
+        # Log sample raw values from first year column
+        if year_columns:
+            sample_raw = df[year_columns[0]].head(5).tolist()
+            logger.info("Sample raw values from column '%s': %s (types: %s)",
+                        year_columns[0], sample_raw, [type(v).__name__ for v in sample_raw])
+
         # Detect if all amounts are negative (accounting convention)
         should_flip = self._detect_sign_flip(df, year_columns)
+        logger.info("Spend analysis: should_flip=%s", should_flip)
 
         existing_suppliers: dict[str, Supplier] = {}
         for s in self.db.query(Supplier).filter(Supplier.organization_id == org_id).all():
