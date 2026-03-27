@@ -396,7 +396,7 @@ class ImportService:
             file_type = "contract_register"
         else:
             has_yearly_columns = any(
-                re.match(r"^20\d{2}$", str(c).strip()) for c in detected_columns
+                re.match(r"^20\d{2}(?:\.0)?$", str(c).strip()) for c in detected_columns
             )
             file_type = "spend_analysis" if has_yearly_columns else "transactions"
 
@@ -719,10 +719,10 @@ class ImportService:
         if not supplier_name_col:
             raise ValueError("Leveranciersnaam kolom is verplicht")
 
-        # Detect year columns (columns named "2019", "2020", etc.)
+        # Detect year columns (columns named "2019", "2020", "2019.0", etc.)
         year_columns = [
             c for c in df.columns
-            if re.match(r"^20\d{2}$", str(c).strip())
+            if re.match(r"^20\d{2}(?:\.0)?$", str(c).strip())
         ]
 
         if not year_columns:
@@ -784,7 +784,7 @@ class ImportService:
                 if should_flip:
                     amount = abs(amount)
 
-                yr = int(str(yc).strip())
+                yr = int(float(str(yc).strip()))
                 key = (supplier.id, yr)
 
                 # Upsert yearly spend using in-memory cache
