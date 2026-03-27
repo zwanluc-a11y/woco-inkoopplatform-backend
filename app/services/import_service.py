@@ -491,9 +491,8 @@ class ImportService:
                 continue
 
             amount_val = row.get(amount_col)
-            try:
-                amount = float(amount_val)
-            except (ValueError, TypeError):
+            amount = _parse_currency(amount_val)
+            if amount is None:
                 continue
 
             # Flip sign if accounting convention detected
@@ -635,9 +634,8 @@ class ImportService:
             for val in df[col]:
                 if pd.isna(val):
                     continue
-                try:
-                    num = float(val)
-                except (ValueError, TypeError):
+                num = _parse_currency(val)
+                if num is None:
                     continue
                 if num == 0:
                     continue
@@ -717,11 +715,8 @@ class ImportService:
                 amount_val = row.get(yc)
                 if pd.isna(amount_val):
                     continue
-                try:
-                    amount = float(amount_val)
-                except (ValueError, TypeError):
-                    continue
-                if amount == 0:
+                amount = _parse_currency(amount_val)
+                if amount is None or amount == 0:
                     continue
 
                 # Flip sign if accounting convention detected
