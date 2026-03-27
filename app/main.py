@@ -37,8 +37,8 @@ async def seed_initial_data() -> None:
 
 def _add_missing_columns() -> None:
     """Add columns to existing tables (create_all won't do this for existing tables)."""
-    from sqlalchemy import text
-    conn = engine.connect()
+    from sqlalchemy import text, inspect as sa_inspect
+    inspector = sa_inspect(engine)
     columns_to_add = [
         ("import_sessions", "progress_current", "INTEGER DEFAULT 0"),
         ("import_sessions", "progress_total", "INTEGER DEFAULT 0"),
@@ -46,13 +46,16 @@ def _add_missing_columns() -> None:
         ("organizations", "corporatie_l_nummer", "VARCHAR(20)"),
         ("contracts", "contract_vorm", "VARCHAR(100)"),
     ]
+    conn = engine.connect()
     for table, col, col_type in columns_to_add:
         try:
-            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
-            logger.info("Added column %s.%s", table, col)
+            existing = {c["name"] for c in inspector.get_columns(table)}
+            if col not in existing:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
+                conn.commit()
+                logger.info("Added column %s.%s", table, col)
         except Exception:
-            pass
-    conn.commit()
+            conn.rollback()
     conn.close()
 
 
