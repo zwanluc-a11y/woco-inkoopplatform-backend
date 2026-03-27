@@ -252,6 +252,9 @@ def auto_match_master_db(
             continue
 
         top_match = matches[0]
+        # Skip matches without a valid category_id
+        if not top_match.category_id:
+            continue
         categorization = SupplierCategorization(
             organization_id=org_id,
             supplier_id=s.id,
