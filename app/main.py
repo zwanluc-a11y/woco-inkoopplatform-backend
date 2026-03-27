@@ -30,7 +30,8 @@ async def seed_initial_data() -> None:
             try:
                 seed_fn(db)
             except Exception as e:
-                logger.error("Seed function %s failed: %s", seed_fn.__name__, e)
+                import traceback
+                logger.error("Seed function %s failed: %s\n%s", seed_fn.__name__, e, traceback.format_exc())
                 db.rollback()
     finally:
         db.close()
@@ -194,3 +195,21 @@ def seed_status():
         return counts
     finally:
         db.close()
+
+
+@app.post("/debug/reseed")
+def reseed():
+    import traceback
+    db = SessionLocal()
+    results = {}
+    try:
+        for seed_fn in [seed_woningcorporaties, seed_inkoop_categories, seed_leveranciers]:
+            try:
+                seed_fn(db)
+                results[seed_fn.__name__] = "ok"
+            except Exception as e:
+                results[seed_fn.__name__] = f"ERROR: {e}\n{traceback.format_exc()}"
+                db.rollback()
+    finally:
+        db.close()
+    return results
