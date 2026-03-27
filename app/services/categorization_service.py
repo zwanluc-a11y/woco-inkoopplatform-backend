@@ -328,6 +328,10 @@ class CategorizationService:
             matches = master_lookups.get(s.normalized_name, []) if s.normalized_name else []
             if matches:
                 top_match = matches[0]
+                # Skip matches without a valid category_id
+                if not top_match.category_id:
+                    ai_needed.append(s)
+                    continue
                 # Direct categorization from master DB
                 categorization = SupplierCategorization(
                     organization_id=org_id,
