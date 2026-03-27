@@ -177,6 +177,19 @@ def delete_master_entry(
     return {"ok": True}
 
 
+@router.delete("")
+def clear_master_db(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete ALL master database entries. Used to reset and rebuild from scratch."""
+    count = db.query(SupplierMasterCategory).count()
+    db.query(SupplierMasterCategory).delete()
+    db.commit()
+    logger.info("Cleared master DB: deleted %d entries", count)
+    return {"deleted": count, "message": f"{count} entries verwijderd uit Master Database"}
+
+
 # ── CSV Import (platform users) ────────────────────────────────────
 
 @router.post("/import-csv")
