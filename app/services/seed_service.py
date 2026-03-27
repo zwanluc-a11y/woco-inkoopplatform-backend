@@ -53,8 +53,8 @@ def seed_woningcorporaties(db: Session) -> None:
     for c in corps:
         l_nummer = c.get("l_nummer", "").strip()
         if not l_nummer:
-            # Generate a placeholder for entries without L-nummer
-            l_nummer = f"X_{c['naam'][:20].replace(' ', '_')}"
+            # Generate a short placeholder for entries without L-nummer (max 20 chars)
+            l_nummer = f"X_{c['naam'][:17].replace(' ', '_')}"
         # Skip if already exists
         existing = db.query(WoningCorporatie).filter(WoningCorporatie.l_nummer == l_nummer).first()
         if existing:

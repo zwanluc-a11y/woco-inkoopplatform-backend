@@ -58,6 +58,15 @@ def _add_missing_columns() -> None:
                 logger.info("Added column %s.%s", table, col)
         except Exception:
             conn.rollback()
+
+    # Make category_id nullable in supplier_master_categories (was NOT NULL)
+    try:
+        conn.execute(text("ALTER TABLE supplier_master_categories ALTER COLUMN category_id DROP NOT NULL"))
+        conn.commit()
+        logger.info("Made supplier_master_categories.category_id nullable")
+    except Exception:
+        conn.rollback()
+
     conn.close()
 
 

@@ -12,7 +12,7 @@ class SupplierMasterCategory(Base):
     normalized_name: Mapped[str] = mapped_column(String(500), index=True)
     category_system: Mapped[str] = mapped_column(String(20), default="aedes", server_default="aedes")
     display_name: Mapped[str] = mapped_column(String(500))
-    category_id: Mapped[int] = mapped_column(Integer, index=True)
+    category_id: Mapped[Optional[int]] = mapped_column(Integer, index=True, nullable=True)
     category_nummer: Mapped[str] = mapped_column(String(20))
     category_name: Mapped[str] = mapped_column(String(500))
     usage_count: Mapped[int] = mapped_column(Integer, default=1)
