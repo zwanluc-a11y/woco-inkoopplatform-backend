@@ -149,6 +149,62 @@ def debug_categorization(
     return results
 
 
+@router.post("/repair-category-ids")
+def repair_category_ids(
+    org_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Repair supplier_categorizations that reference wrong category IDs.
+
+    This fixes the issue where categorizations were created with IDs from
+    a different category_system (e.g. 'aedes' IDs 1-34) instead of 'woco' (IDs 35+).
+    It re-maps by matching the category nummer.
+    """
+    from app.models.category import InkoopCategory
+
+    # Build lookup: old_category_id -> nummer (from ALL categories)
+    all_cats = db.query(InkoopCategory).all()
+    id_to_nummer = {c.id: c.nummer for c in all_cats}
+
+    # Build lookup: nummer -> correct woco category
+    woco_cats = db.query(InkoopCategory).filter(
+        InkoopCategory.category_system == "woco"
+    ).all()
+    nummer_to_woco = {c.nummer: c for c in woco_cats}
+    woco_ids = {c.id for c in woco_cats}
+
+    # Find categorizations for this org that point to non-woco IDs
+    categorizations = db.query(SupplierCategorization).filter(
+        SupplierCategorization.organization_id == org_id,
+    ).all()
+
+    fixed = 0
+    deleted = 0
+    for cat_record in categorizations:
+        if cat_record.category_id in woco_ids:
+            continue  # Already correct
+
+        old_nummer = id_to_nummer.get(cat_record.category_id)
+        if old_nummer and old_nummer in nummer_to_woco:
+            # Re-map to the correct woco category
+            cat_record.category_id = nummer_to_woco[old_nummer].id
+            fixed += 1
+        else:
+            # Can't find matching category, remove the categorization
+            db.delete(cat_record)
+            deleted += 1
+
+    db.commit()
+    logger.info("Repaired categorizations for org %d: fixed=%d, deleted=%d", org_id, fixed, deleted)
+
+    return {
+        "fixed": fixed,
+        "deleted": deleted,
+        "message": f"{fixed} categorisaties gerepareerd, {deleted} verwijderd",
+    }
+
+
 @router.post("/auto-match-master")
 def auto_match_master_db(
     org_id: int,

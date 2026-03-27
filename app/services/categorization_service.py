@@ -118,7 +118,7 @@ class CategorizationService:
         )
         return [t.description for t in transactions if t.description]
 
-    def get_all_categories(self, category_system: str = "aedes") -> list[dict]:
+    def get_all_categories(self, category_system: str = "woco") -> list[dict]:
         """Get all categories for a specific system formatted for the AI prompt."""
         cats = (
             self.db.query(InkoopCategory)
@@ -313,7 +313,7 @@ class CategorizationService:
         # ── Step 1: Master DB pre-matching ──────────────────────────────
         # Auto-categorize suppliers that already exist in the cross-org
         # knowledge base, skipping AI entirely for these.
-        category_system = "aedes"
+        category_system = "woco"
 
         master_svc = SupplierMasterService(self.db)
         normalized_names = [
@@ -515,7 +515,10 @@ class CategorizationService:
         for suggestion in suggestions:
             cat = (
                 self.db.query(InkoopCategory)
-                .filter(InkoopCategory.nummer == str(suggestion["category_nummer"]))
+                .filter(
+                    InkoopCategory.nummer == str(suggestion["category_nummer"]),
+                    InkoopCategory.category_system == "woco",
+                )
                 .first()
             )
 
