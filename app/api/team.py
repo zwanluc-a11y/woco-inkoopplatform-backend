@@ -16,7 +16,7 @@ router = APIRouter(prefix="/team", tags=["team"])
 
 
 @router.get("", dependencies=[Depends(get_current_user)])
-async def list_team_members(
+def list_team_members(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
@@ -50,7 +50,7 @@ class TeamInviteRequest(BaseModel):
     dependencies=[Depends(get_current_user)],
     status_code=status.HTTP_201_CREATED,
 )
-async def invite_team_member(
+def invite_team_member(
     data: TeamInviteRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -90,7 +90,7 @@ class UpdatePlatformRoleRequest(BaseModel):
 
 
 @router.put("/{user_id}/role", dependencies=[Depends(get_current_user)])
-async def update_team_member_role(
+def update_team_member_role(
     user_id: int,
     data: UpdatePlatformRoleRequest,
     db: Annotated[Session, Depends(get_db)],
@@ -125,7 +125,7 @@ async def update_team_member_role(
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(get_current_user)],
 )
-async def remove_team_member(
+def remove_team_member(
     user_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

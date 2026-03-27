@@ -1,0 +1,1815 @@
+[
+  {
+    "l_nummer": "L1215",
+    "naam": "3B-Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1793",
+    "naam": "Acantus",
+    "provincie": "Groningen",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1638",
+    "naam": "Accolade",
+    "provincie": "Friesland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0574",
+    "naam": "Actium",
+    "provincie": "Drenthe",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0358",
+    "naam": "Almelose Woningstichting Beter Wonen",
+    "provincie": "Overijssel",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0495",
+    "naam": "Alwel",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0241",
+    "naam": "Antares Woonservice",
+    "provincie": "Limburg",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0410",
+    "naam": "Arcade mensen en wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0886",
+    "naam": "Area",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1128",
+    "naam": "Baston Wonen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0931",
+    "naam": "Bazalt Wonen",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1627",
+    "naam": "Berg en Terblijt",
+    "provincie": "Limburg",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1226",
+    "naam": "Bergopwaarts",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1559",
+    "naam": "Beter Wonen - Bergambacht",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1454",
+    "naam": "Beter Wonen - Hollands Kroon",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0858",
+    "naam": "Beter Wonen - Ijsselmuiden",
+    "provincie": "Overijssel",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1901",
+    "naam": "Beveland Wonen",
+    "provincie": "Zeeland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0041",
+    "naam": "Bo-Ex '91",
+    "provincie": "Utrecht",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0176",
+    "naam": "BrabantWonen",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0630",
+    "naam": "Brederode Wonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0944",
+    "naam": "Casade",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0766",
+    "naam": "Cazas Wonen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1888",
+    "naam": "Centrada",
+    "provincie": "Flevoland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1471",
+    "naam": "Charlotte van Beuningen",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0418",
+    "naam": "Clavis",
+    "provincie": "Zeeland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1847",
+    "naam": "Compaen",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1912",
+    "naam": "De Alliantie",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0446",
+    "naam": "De Goede Woning - Apeldoorn",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1709",
+    "naam": "De Goede Woning - Rijssen",
+    "provincie": "Overijssel",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1459",
+    "naam": "De Goede Woning - Zoetermeer",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0385",
+    "naam": "De Huismeesters",
+    "provincie": "Groningen",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1825",
+    "naam": "De Kernen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L2103",
+    "naam": "De Key",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L1896",
+    "naam": "De Leeuw van Putten",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L2099",
+    "naam": "De Marken",
+    "provincie": "Overijssel",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0295",
+    "naam": "De Sleutels",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1899",
+    "naam": "De Volmacht",
+    "provincie": "Drenthe",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1892",
+    "naam": "De Woningraat",
+    "provincie": "Utrecht",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0979",
+    "naam": "De Woningstichting",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1680",
+    "naam": "De Woonmensen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1842",
+    "naam": "De Woonplaats",
+    "provincie": "Overijssel",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0876",
+    "naam": "De Woonschakel",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1794",
+    "naam": "De Zaligheden",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L2090",
+    "naam": "De Zes Kernen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0029",
+    "naam": "DeltaWonen",
+    "provincie": "Overijssel",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0641",
+    "naam": "Destion",
+    "provincie": "Limburg",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0045",
+    "naam": "Domesta",
+    "provincie": "Drenthe",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1426",
+    "naam": "Domijn",
+    "provincie": "Overijssel",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0383",
+    "naam": "Dudok Wonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1436",
+    "naam": "Dunavie",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L2004",
+    "naam": "DUWO",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0036",
+    "naam": "Dynhus",
+    "provincie": "Friesland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0568",
+    "naam": "Eelder Woningbouw",
+    "provincie": "Drenthe",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0108",
+    "naam": "Eigen Haard",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0231",
+    "naam": "Elan Wonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0553",
+    "naam": "Elkien",
+    "provincie": "Friesland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0582",
+    "naam": "Fien Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1745",
+    "naam": "Goed Wonen - Gemert-Bakel",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1891",
+    "naam": "GoedeStede",
+    "provincie": "Flevoland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0688",
+    "naam": "Goud Wonen",
+    "provincie": "Groningen",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0740",
+    "naam": "Groninger Huis",
+    "provincie": "Groningen",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0425",
+    "naam": "Haag Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1666",
+    "naam": "Habion",
+    "provincie": "Utrecht",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1985",
+    "naam": "Harmonisch Wonen",
+    "provincie": "Flevoland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0392",
+    "naam": "Havensteder",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0228",
+    "naam": "HEEMwonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L2120",
+    "naam": "Hef Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0992",
+    "naam": "Helpt Elkander",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1875",
+    "naam": "Het Gooi en Omstreken",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0883",
+    "naam": "Het Grootslag",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1640",
+    "naam": "Hoek van Holland",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L2121",
+    "naam": "Hof Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0732",
+    "naam": "HW Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1968",
+    "naam": "Idealis",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1239",
+    "naam": "IJsseldal Wonen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0019",
+    "naam": "Intermaris",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1964",
+    "naam": "Jongeren Huisvesting Twente",
+    "provincie": "Overijssel",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1236",
+    "naam": "JOOST",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0837",
+    "naam": "Jutphaas",
+    "provincie": "Utrecht",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0583",
+    "naam": "Kennemer Wonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0343",
+    "naam": "KleurrijkWonen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0082",
+    "naam": "Krijtland Wonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1704",
+    "naam": "Land van Altena",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0305",
+    "naam": "Langedijk",
+    "provincie": "-",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1005",
+    "naam": "Laurentius",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1542",
+    "naam": "Lefier",
+    "provincie": "Groningen",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0144",
+    "naam": "Lekstede wonen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0089",
+    "naam": "l'escaut",
+    "provincie": "Zeeland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1788",
+    "naam": "Leystromen",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1876",
+    "naam": "Maasdelta Groep",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1835",
+    "naam": "Maasdriel",
+    "provincie": "Gelderland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1038",
+    "naam": "Maasvallei Maastricht",
+    "provincie": "Limburg",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L2066",
+    "naam": "MaasWonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1804",
+    "naam": "Mercatus",
+    "provincie": "Flevoland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0178",
+    "naam": "Mijande Wonen",
+    "provincie": "Overijssel",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1817",
+    "naam": "Mooiland",
+    "provincie": "-",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0232",
+    "naam": "Mozaïek Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1836",
+    "naam": "NabijWonen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1839",
+    "naam": "Nester",
+    "provincie": "Limburg",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1109",
+    "naam": "Nijestee",
+    "provincie": "Groningen",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0968",
+    "naam": "Omnia Wonen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0936",
+    "naam": "Omthuis",
+    "provincie": "Utrecht",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0682",
+    "naam": "Ons Doel",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1691",
+    "naam": "Ons Huis - Apeldoorn",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0173",
+    "naam": "Ons Huis - Enschede",
+    "provincie": "Overijssel",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1861",
+    "naam": "Oost Flevoland Woondiensten",
+    "provincie": "Flevoland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0506",
+    "naam": "Oost West wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1670",
+    "naam": "Oosterpoort",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0757",
+    "naam": "Oostzaanse Volkshuisvesting",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0008",
+    "naam": "Openbaar Belang",
+    "provincie": "Overijssel",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0059",
+    "naam": "Parteon",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0248",
+    "naam": "Patrimonium - Barendrecht",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0380",
+    "naam": "Patrimonium - Groningen",
+    "provincie": "Groningen",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1712",
+    "naam": "Patrimonium - Urk",
+    "provincie": "Flevoland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1811",
+    "naam": "PeelrandWonen",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1821",
+    "naam": "Plavei",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1549",
+    "naam": "Poort6",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0117",
+    "naam": "Portaal",
+    "provincie": "Utrecht",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0640",
+    "naam": "Pré Wonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0835",
+    "naam": "ProWonen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0540",
+    "naam": "QuaWonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1413",
+    "naam": "Reggewoon",
+    "provincie": "Overijssel",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0694",
+    "naam": "Rentree",
+    "provincie": "Overijssel",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L2056",
+    "naam": "Ressort Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L2068",
+    "naam": "Rhenam Wonen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0439",
+    "naam": "Rhiant",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1524",
+    "naam": "Rijnhart Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0017",
+    "naam": "Rochdale",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0590",
+    "naam": "Rondom Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1506",
+    "naam": "SallandWonen",
+    "provincie": "Overijssel",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0371",
+    "naam": "Samenwerking Vlaardingen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0005",
+    "naam": "Servatius",
+    "provincie": "Limburg",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1017",
+    "naam": "Sité Woondiensten",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1926",
+    "naam": "SOR",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1944",
+    "naam": "SSHN",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0678",
+    "naam": "St. Antonius van Padua",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0921",
+    "naam": "St. Joseph Almelo",
+    "provincie": "Overijssel",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1164",
+    "naam": "St. Willibrordus",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0124",
+    "naam": "Stadgenoot",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L1785",
+    "naam": "Stadlander",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1768",
+    "naam": "Staedion",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L2122",
+    "naam": "Stedelink",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0157",
+    "naam": "Woonstichting Stek",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0093",
+    "naam": "SWZ",
+    "provincie": "Overijssel",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0867",
+    "naam": "Tablis Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1479",
+    "naam": "Talis",
+    "provincie": "Gelderland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0497",
+    "naam": "TBV",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1881",
+    "naam": "Thius",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1781",
+    "naam": "Thuisvester",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1792",
+    "naam": "Thús Wonen",
+    "provincie": "-",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1913",
+    "naam": "Tiwos",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0309",
+    "naam": "Triada",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0267",
+    "naam": "Trivire",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0527",
+    "naam": "Trudo",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0369",
+    "naam": "UWOON",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1893",
+    "naam": "Valburg",
+    "provincie": "Gelderland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0063",
+    "naam": "Van Alckmaer",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0238",
+    "naam": "Vanhier Wonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1585",
+    "naam": "Vecht en Omstreken",
+    "provincie": "Utrecht",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0661",
+    "naam": "VechtHorst",
+    "provincie": "Overijssel",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0734",
+    "naam": "Veenvesters",
+    "provincie": "Utrecht",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0510",
+    "naam": "Velison Wonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0782",
+    "naam": "Veluwonen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0033",
+    "naam": "VH de Bouwvereniging",
+    "provincie": "Friesland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1093",
+    "naam": "Vidomes",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0841",
+    "naam": "Vincio wonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0658",
+    "naam": "Vivare",
+    "provincie": "Gelderland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0347",
+    "naam": "Viverion",
+    "provincie": "Gelderland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0249",
+    "naam": "Volksbelang - Helmond",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0065",
+    "naam": "Volkshuisvesting Arnhem",
+    "provincie": "Gelderland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0331",
+    "naam": "Vryleve",
+    "provincie": "Gelderland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0221",
+    "naam": "Waardwonen",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0272",
+    "naam": "Wassenaarsche Bouwstichting",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L2072",
+    "naam": "Waterweg Wonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0794",
+    "naam": "Wbv Anna Paulowna",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0379",
+    "naam": "Wbv Arnemuiden",
+    "provincie": "Zeeland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0629",
+    "naam": "Wbv Poortugaal",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1760",
+    "naam": "Wbv Reeuwijk",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1064",
+    "naam": "Welbions",
+    "provincie": "Overijssel",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0225",
+    "naam": "Weller Wonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1737",
+    "naam": "Welwonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1753",
+    "naam": "Wetland Wonen Groep",
+    "provincie": "Overijssel",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0366",
+    "naam": "Wierden en Borgen",
+    "provincie": "Groningen",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1766",
+    "naam": "woCom",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0077",
+    "naam": "Wold en Waard",
+    "provincie": "Groningen",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0765",
+    "naam": "Wonen Delden",
+    "provincie": "Overijssel",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1697",
+    "naam": "Wonen Limburg",
+    "provincie": "Limburg",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0003",
+    "naam": "Wonen Noordwest Friesland",
+    "provincie": "Friesland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1864",
+    "naam": "Wonen Vierlingsbeek",
+    "provincie": "-",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1622",
+    "naam": "Wonen Wittem",
+    "provincie": "Limburg",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0081",
+    "naam": "Wonen Zuid",
+    "provincie": "Limburg",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1911",
+    "naam": "WonenBreburg",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L2073",
+    "naam": "Woningbedrijf Velsen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1525",
+    "naam": "Woningbeheer De Vooruitgang",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0923",
+    "naam": "Woningbelang",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0898",
+    "naam": "Wonion",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1464",
+    "naam": "Woonbedrijf",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L1418",
+    "naam": "Woonbedrijf ieder1",
+    "provincie": "Overijssel",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0666",
+    "naam": "Woonborg",
+    "provincie": "Drenthe",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0665",
+    "naam": "Woonbron",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0478",
+    "naam": "Wooncompagnie",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0689",
+    "naam": "Wooncompas",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0363",
+    "naam": "Woonconcept",
+    "provincie": "Drenthe",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L2084",
+    "naam": "Woondiensten Aarwoude",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0565",
+    "naam": "WoonForte",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1663",
+    "naam": "WoonFriesland",
+    "provincie": "Friesland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0943",
+    "naam": "Woongoed Middelburg",
+    "provincie": "Zeeland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1569",
+    "naam": "Woongoed Zeeuws-Vlaanderen",
+    "provincie": "Zeeland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1713",
+    "naam": "Woongroen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1837",
+    "naam": "Woonik",
+    "provincie": "Limburg",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L2058",
+    "naam": "Woonin",
+    "provincie": "Utrecht",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L1519",
+    "naam": "Wooninc.",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0673",
+    "naam": "Wooninvest",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1921",
+    "naam": "Woonkracht10",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1906",
+    "naam": "Woonkwartier",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0643",
+    "naam": "Woonmeij",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1533",
+    "naam": "WOONopMAAT",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L2014",
+    "naam": "Woonpalet Zeewolde",
+    "provincie": "Flevoland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1647",
+    "naam": "Woonpartners",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L2114",
+    "naam": "Woonpartners Midden-Holland",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L2085",
+    "naam": "Woonplus Schiedam",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0571",
+    "naam": "Woonpunt",
+    "provincie": "Limburg",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1877",
+    "naam": "Woonservice Drenthe",
+    "provincie": "Drenthe",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1409",
+    "naam": "Woonservice IJsselland",
+    "provincie": "Gelderland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0079",
+    "naam": "Woonstad Rotterdam",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L2051",
+    "naam": "Woonstede",
+    "provincie": "Gelderland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1560",
+    "naam": "Woontij",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1763",
+    "naam": "Woonveste",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1802",
+    "naam": "Woonvizier",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1182",
+    "naam": "Woonwaard Noord-Kennemerland",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0237",
+    "naam": "Woonwaarts",
+    "provincie": "Gelderland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L0274",
+    "naam": "WoonWENZ",
+    "provincie": "Limburg",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0354",
+    "naam": "WoonWest",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L1646",
+    "naam": "Woonzorg Nederland",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0202",
+    "naam": "Wormerwonen",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L2082",
+    "naam": "Ws Barneveld",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1399",
+    "naam": "Ws Den Helder",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0254",
+    "naam": "Ws Heteren",
+    "provincie": "Gelderland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0579",
+    "naam": "Ws Hulst",
+    "provincie": "Zeeland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0636",
+    "naam": "Ws Meerssen",
+    "provincie": "Limburg",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0386",
+    "naam": "Ws Naarden",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L2083",
+    "naam": "Ws Nieuwkoop",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1693",
+    "naam": "Ws Nijkerk",
+    "provincie": "Gelderland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1865",
+    "naam": "Ws Putten",
+    "provincie": "Gelderland",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0151",
+    "naam": "Ws 'thuis",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1678",
+    "naam": "Ws Tubbergen",
+    "provincie": "Overijssel",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0165",
+    "naam": "Ws Weststellingwerf",
+    "provincie": "Friesland",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L1850",
+    "naam": "Ws Woensdrecht",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L1579",
+    "naam": "Wuta",
+    "provincie": "Utrecht",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  },
+  {
+    "l_nummer": "L0308",
+    "naam": "Wywonen",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L2070",
+    "naam": "Ymere",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "XL",
+    "aantal_vhe": "> 25.001 vhe's"
+  },
+  {
+    "l_nummer": "L0986",
+    "naam": "Zaam Wonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "S",
+    "aantal_vhe": "2.501-5.000 vhe's"
+  },
+  {
+    "l_nummer": "L0278",
+    "naam": "Zaandams Volkshuisvesting (ZVH)",
+    "provincie": "Noord-Holland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0013",
+    "naam": "Zayaz",
+    "provincie": "Noord-Brabant",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "L1581",
+    "naam": "Zeeuwland",
+    "provincie": "Zeeland",
+    "grootte_klasse": "M",
+    "aantal_vhe": "5.001-10.000 vhe's"
+  },
+  {
+    "l_nummer": "L0269",
+    "naam": "ZO Wonen",
+    "provincie": "Limburg",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "",
+    "naam": "Inkoopsamenwerking ZHZ",
+    "provincie": "Zuid-Holland",
+    "grootte_klasse": "L",
+    "aantal_vhe": "10.001-25.000 vhe's"
+  },
+  {
+    "l_nummer": "",
+    "naam": "Demo Adjust",
+    "provincie": "",
+    "grootte_klasse": "",
+    "aantal_vhe": ""
+  },
+  {
+    "l_nummer": "L0936",
+    "naam": "Cocon Wonen",
+    "provincie": "Utrecht",
+    "grootte_klasse": "XS",
+    "aantal_vhe": "< 2.500 vhe's"
+  }
+]

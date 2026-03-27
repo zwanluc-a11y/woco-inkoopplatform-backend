@@ -36,7 +36,7 @@ def _check_membership(db: Session, user: User, org_id: int) -> None:
 
 
 @router.get("/spend")
-async def export_spend(
+def export_spend(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user_or_token)],
@@ -54,7 +54,7 @@ async def export_spend(
 
 
 @router.get("/risk")
-async def export_risk(
+def export_risk(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user_or_token)],
@@ -73,7 +73,7 @@ async def export_risk(
 
 
 @router.get("/calendar")
-async def export_calendar(
+def export_calendar(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user_or_token)],
@@ -91,7 +91,7 @@ async def export_calendar(
 
 
 @router.get("/report-pdf")
-async def export_report_pdf(
+def export_report_pdf(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user_or_token)],

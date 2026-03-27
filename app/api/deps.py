@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from typing import Annotated, Optional
 
 import jwt
@@ -19,6 +20,10 @@ _CLERK_ID_PATTERN = re.compile(r"^user_[a-zA-Z0-9]{20,}$")
 logger = logging.getLogger(__name__)
 
 _jwks_client: Optional[PyJWKClient] = None
+
+# In-memory cache for Clerk user info (clerk_id -> {info, timestamp})
+_clerk_info_cache: dict[str, dict] = {}
+_CACHE_TTL = 600  # 10 minutes
 
 
 def _get_jwks_client() -> PyJWKClient:
@@ -58,11 +63,9 @@ def get_db():
         db.close()
 
 
-def _extract_user_info(payload: dict, clerk_id: str) -> dict:
-    """Extract email and name from JWT claims, falling back to Clerk API."""
+def _extract_user_info_from_jwt(payload: dict) -> dict:
+    """Extract email and name from JWT claims only (no external calls)."""
     info: dict = {"email": "", "first_name": "", "last_name": ""}
-
-    # Try JWT claims first
     info["email"] = payload.get("email", "") or payload.get("primary_email_address", "")
     info["first_name"] = payload.get("first_name", "")
     info["last_name"] = payload.get("last_name", "")
@@ -75,42 +78,53 @@ def _extract_user_info(payload: dict, clerk_id: str) -> dict:
                 info["email"] = first_email.get("email_address", "")
             elif isinstance(first_email, str):
                 info["email"] = first_email
+    return info
 
-    # If email or name still missing, try Clerk API
-    if not info["email"] or not info["first_name"]:
-        if not _CLERK_ID_PATTERN.match(clerk_id):
-            return info
-        clerk_secret = settings.CLERK_SECRET_KEY
-        if not clerk_secret:
-            try:
-                from app.models.app_setting import AppSetting
-                db = SessionLocal()
-                row = db.query(AppSetting).filter(AppSetting.key == "CLERK_SECRET_KEY").first()
-                if row:
-                    clerk_secret = row.value
-                db.close()
-            except Exception:
-                pass
-        if clerk_secret:
-            try:
-                import json as _json
-                import urllib.request
-                req = urllib.request.Request(
-                    f"https://api.clerk.com/v1/users/{clerk_id}",
-                    headers={"Authorization": f"Bearer {clerk_secret}"},
-                )
-                with urllib.request.urlopen(req, timeout=5) as resp:
-                    if resp.status == 200:
-                        data = _json.loads(resp.read())
-                        if not info["email"]:
-                            addrs = data.get("email_addresses", [])
-                            if addrs:
-                                info["email"] = addrs[0].get("email_address", "")
-                        if not info["first_name"]:
-                            info["first_name"] = data.get("first_name", "") or ""
-                            info["last_name"] = data.get("last_name", "") or ""
-            except Exception as e:
-                logger.warning("Failed to fetch user info from Clerk API: %s", e)
+
+def _fetch_clerk_user_info(clerk_id: str) -> dict:
+    """Fetch user info from Clerk API with caching. Only called for new users."""
+    now = time.time()
+    cached = _clerk_info_cache.get(clerk_id)
+    if cached and (now - cached["ts"]) < _CACHE_TTL:
+        return cached["info"]
+
+    info: dict = {"email": "", "first_name": "", "last_name": ""}
+
+    if not _CLERK_ID_PATTERN.match(clerk_id):
+        return info
+
+    clerk_secret = settings.CLERK_SECRET_KEY
+    if not clerk_secret:
+        try:
+            from app.models.app_setting import AppSetting
+            tmp_db = SessionLocal()
+            row = tmp_db.query(AppSetting).filter(AppSetting.key == "CLERK_SECRET_KEY").first()
+            if row:
+                clerk_secret = row.value
+            tmp_db.close()
+        except Exception:
+            pass
+
+    if clerk_secret:
+        try:
+            import json as _json
+            import urllib.request
+            req = urllib.request.Request(
+                f"https://api.clerk.com/v1/users/{clerk_id}",
+                headers={"Authorization": f"Bearer {clerk_secret}"},
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    data = _json.loads(resp.read())
+                    addrs = data.get("email_addresses", [])
+                    if addrs:
+                        info["email"] = addrs[0].get("email_address", "")
+                    info["first_name"] = data.get("first_name", "") or ""
+                    info["last_name"] = data.get("last_name", "") or ""
+        except Exception as e:
+            logger.warning("Failed to fetch Clerk user info: %s", e)
+
+    _clerk_info_cache[clerk_id] = {"info": info, "ts": now}
     return info
 
 
@@ -118,56 +132,46 @@ def _resolve_user(payload: dict, db: Session) -> User:
     clerk_id = payload.get("sub")
     if not clerk_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Ongeldige token: geen gebruiker")
-    user_info = _extract_user_info(payload, clerk_id)
-    email = user_info["email"]
-    display_name = f"{user_info['first_name']} {user_info['last_name']}".strip()
-    if not display_name and email:
-        display_name = email.split("@")[0]
 
-    # Auto-cleanup: demote ghost eigenaar records (no email or no clerk_id)
-    try:
-        ghost_demoted = db.execute(
-            text(
-                "UPDATE users SET platform_role = NULL "
-                "WHERE platform_role = 'eigenaar' "
-                "AND (email IS NULL OR email = '' OR clerk_id IS NULL OR clerk_id = '')"
-            )
-        )
-        if ghost_demoted.rowcount > 0:
-            db.commit()
-            logger.info("Demoted %d ghost eigenaar record(s)", ghost_demoted.rowcount)
-    except Exception:
-        db.rollback()
-
+    # Fast path: user already exists in DB — no Clerk API call needed
     user = db.query(User).filter(User.clerk_id == clerk_id).first()
     if user:
-        updated = False
-        if not user.email and email:
-            user.email = email
-            updated = True
-        if (not user.name or user.name == "Gebruiker") and display_name:
-            user.name = display_name
-            updated = True
-        if not user.platform_role:
-            try:
-                result = db.execute(
-                    text(
-                        "UPDATE users SET platform_role = 'eigenaar' "
-                        "WHERE id = :uid AND platform_role IS NULL "
-                        "AND NOT EXISTS ("
-                        "  SELECT 1 FROM users WHERE platform_role IS NOT NULL AND clerk_id IS NOT NULL"
-                        ")"
-                    ),
-                    {"uid": user.id},
-                )
-                if result.rowcount > 0:
-                    updated = True
-            except Exception:
-                pass
-        if updated:
+        # Only update if name is still "Gebruiker" or email is missing
+        needs_update = False
+        if (not user.name or user.name == "Gebruiker") or not user.email:
+            jwt_info = _extract_user_info_from_jwt(payload)
+            if not user.email and jwt_info["email"]:
+                user.email = jwt_info["email"]
+                needs_update = True
+            if (not user.name or user.name == "Gebruiker"):
+                display = f"{jwt_info['first_name']} {jwt_info['last_name']}".strip()
+                if not display and jwt_info["email"]:
+                    display = jwt_info["email"].split("@")[0]
+                if display:
+                    user.name = display
+                    needs_update = True
+        if needs_update:
             db.commit()
             db.refresh(user)
         return user
+
+    # Slow path: new user — extract info (may call Clerk API once)
+    jwt_info = _extract_user_info_from_jwt(payload)
+    email = jwt_info["email"]
+    display_name = f"{jwt_info['first_name']} {jwt_info['last_name']}".strip()
+
+    # If JWT didn't have email/name, try Clerk API (cached)
+    if not email or not display_name:
+        clerk_info = _fetch_clerk_user_info(clerk_id)
+        if not email:
+            email = clerk_info["email"]
+        if not display_name:
+            display_name = f"{clerk_info['first_name']} {clerk_info['last_name']}".strip()
+
+    if not display_name and email:
+        display_name = email.split("@")[0]
+
+    # Check by email
     if email:
         user = db.query(User).filter(User.email == email).first()
         if user:
@@ -175,30 +179,19 @@ def _resolve_user(payload: dict, db: Session) -> User:
             db.commit()
             db.refresh(user)
             return user
-    name = display_name or (email.split("@")[0] if email else "Gebruiker")
-    # Auto-promote first user to platform eigenaar
-    existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
+
+    # Create new user
+    name = display_name or "Gebruiker"
+    existing_owner = db.query(User).filter(
+        User.platform_role == "eigenaar",
+        User.clerk_id.isnot(None),
+        User.clerk_id != "",
+    ).first()
     initial_role = "eigenaar" if not existing_owner else None
     user = User(clerk_id=clerk_id, email=email, name=name, platform_role=initial_role)
     db.add(user)
     db.commit()
     db.refresh(user)
-    try:
-        result = db.execute(
-            text(
-                "UPDATE users SET platform_role = 'eigenaar' "
-                "WHERE id = :uid AND platform_role IS NULL "
-                "AND NOT EXISTS ("
-                "  SELECT 1 FROM users WHERE platform_role IS NOT NULL AND clerk_id IS NOT NULL AND id != :uid"
-                ")"
-            ),
-            {"uid": user.id},
-        )
-        if result.rowcount > 0:
-            db.commit()
-            db.refresh(user)
-    except Exception:
-        pass
     return user
 
 

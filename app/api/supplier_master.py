@@ -63,7 +63,7 @@ def _serialize(entry) -> dict:
 # ── List / Search (platform users) ─────────────────────────────────
 
 @router.get("")
-async def list_master_entries(
+def list_master_entries(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     search: str = "",
@@ -85,7 +85,7 @@ async def list_master_entries(
 # ── Stats (platform users) ─────────────────────────────────────────
 
 @router.get("/stats")
-async def master_stats(
+def master_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     category_system: Optional[str] = Query(None, description="Categoriesysteem filter"),
@@ -98,7 +98,7 @@ async def master_stats(
 # ── Create (platform users) ────────────────────────────────────────
 
 @router.post("")
-async def create_master_entry(
+def create_master_entry(
     req: CreateMasterEntryRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -131,7 +131,7 @@ async def create_master_entry(
 # ── Update (platform users) ────────────────────────────────────────
 
 @router.put("/{entry_id}")
-async def update_master_entry(
+def update_master_entry(
     entry_id: int,
     req: UpdateMasterEntryRequest,
     db: Session = Depends(get_db),
@@ -155,7 +155,7 @@ async def update_master_entry(
 # ── Delete (platform users) ────────────────────────────────────────
 
 @router.delete("/{entry_id}")
-async def delete_master_entry(
+def delete_master_entry(
     entry_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -171,7 +171,7 @@ async def delete_master_entry(
 # ── CSV Import (platform users) ────────────────────────────────────
 
 @router.post("/import-csv")
-async def import_csv(
+def import_csv(
     file: UploadFile = File(...),
     category_system: str = Query("aedes", description="Categoriesysteem filter"),
     db: Session = Depends(get_db),
@@ -189,7 +189,7 @@ async def import_csv(
 # ── Backfill from existing categorizations (platform users) ────────
 
 @router.post("/backfill")
-async def backfill_from_existing(
+def backfill_from_existing(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -288,7 +288,7 @@ async def backfill_from_existing(
 # ── Bulk Lookup (any authenticated user) ───────────────────────────
 
 @router.post("/bulk-lookup")
-async def bulk_lookup(
+def bulk_lookup(
     req: BulkLookupRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

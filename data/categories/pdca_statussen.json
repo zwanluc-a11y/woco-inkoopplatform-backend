@@ -1,0 +1,38 @@
+[
+  {
+    "status": "Quickscan",
+    "pdca_fase": "Plan"
+  },
+  {
+    "status": "Startdocument",
+    "pdca_fase": "Plan"
+  },
+  {
+    "status": "Categorieplan",
+    "pdca_fase": "Plan"
+  },
+  {
+    "status": "Inkoopstrategie",
+    "pdca_fase": "Do"
+  },
+  {
+    "status": "Gunningsadvies",
+    "pdca_fase": "Do"
+  },
+  {
+    "status": "Implementatie",
+    "pdca_fase": "Do"
+  },
+  {
+    "status": "Contractadministratie",
+    "pdca_fase": "Check"
+  },
+  {
+    "status": "Contractmanagement",
+    "pdca_fase": "Check"
+  },
+  {
+    "status": "Act",
+    "pdca_fase": "Act"
+  }
+]

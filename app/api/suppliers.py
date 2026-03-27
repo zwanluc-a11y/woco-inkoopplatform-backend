@@ -53,7 +53,7 @@ def _enrich_supplier(supplier: Supplier) -> dict:
 
 
 @router.get("")
-async def list_suppliers(
+def list_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -88,7 +88,7 @@ async def list_suppliers(
 
 
 @router.get("/{supplier_id}", response_model=SupplierDetailResponse)
-async def get_supplier(
+def get_supplier(
     org_id: int,
     supplier_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -105,7 +105,7 @@ async def get_supplier(
 
 
 @router.get("/{supplier_id}/transactions", response_model=list[TransactionResponse])
-async def get_supplier_transactions(
+def get_supplier_transactions(
     org_id: int,
     supplier_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -122,7 +122,7 @@ async def get_supplier_transactions(
 
 
 @router.put("/{supplier_id}/category", response_model=CategorizationResponse)
-async def set_supplier_category(
+def set_supplier_category(
     org_id: int,
     supplier_id: int,
     data: CategorizationRequest,
@@ -170,7 +170,7 @@ async def set_supplier_category(
 
 
 @router.post("/bulk-categorize", response_model=list[CategorizationResponse])
-async def bulk_categorize(
+def bulk_categorize(
     org_id: int,
     data: BulkCategorizationRequest,
     db: Annotated[Session, Depends(get_db)],

@@ -16,8 +16,11 @@ class Contract(Base):
     name: Mapped[str] = mapped_column(String(500))
     contract_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     contract_type: Mapped[Optional[str]] = mapped_column(
-        String(50), nullable=True
-    )  # raamcontract, huur_lease, onderhoud, eenmalig, overig
+        String(100), nullable=True
+    )  # Raamovereenkomst, Onderhoudsovereenkomst, Huurovereenkomst, etc.
+    contract_vorm: Mapped[Optional[str]] = mapped_column(
+        String(100), nullable=True
+    )  # Individueel, Samenwerking, etc.
     start_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     end_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     extension_options: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

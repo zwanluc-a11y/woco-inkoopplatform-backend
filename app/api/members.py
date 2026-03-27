@@ -20,7 +20,7 @@ router = APIRouter(
 
 
 @router.get("")
-async def list_members(
+def list_members(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -77,7 +77,7 @@ class UpdateRoleRequest(BaseModel):
 
 
 @router.put("/{user_id}/role")
-async def update_member_role(
+def update_member_role(
     org_id: int,
     user_id: int,
     data: UpdateRoleRequest,
@@ -132,7 +132,7 @@ async def update_member_role(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def remove_member(
+def remove_member(
     org_id: int,
     user_id: int,
     db: Annotated[Session, Depends(get_db)],

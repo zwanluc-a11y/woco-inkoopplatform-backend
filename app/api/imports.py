@@ -32,7 +32,7 @@ router = APIRouter(
 
 
 @router.post("/upload", response_model=ImportUploadResponse)
-async def upload_excel(
+def upload_excel(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
@@ -107,7 +107,7 @@ def _run_import_background(session_id: int, column_mapping: dict, year: Optional
 
 
 @router.post("/confirm", response_model=ImportStatusResponse)
-async def confirm_import(
+def confirm_import(
     org_id: int,
     data: ImportConfirmRequest,
     db: Annotated[Session, Depends(get_db)],
@@ -143,7 +143,7 @@ async def confirm_import(
 
 
 @router.get("/status/{session_id}", response_model=ImportStatusResponse)
-async def import_status(
+def import_status(
     org_id: int,
     session_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -163,7 +163,7 @@ async def import_status(
 
 
 @router.get("/history", response_model=list[ImportStatusResponse])
-async def import_history(
+def import_history(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -177,7 +177,7 @@ async def import_history(
 
 
 @router.post("/reset-spend")
-async def reset_spend_data(
+def reset_spend_data(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -235,7 +235,7 @@ async def reset_spend_data(
 
 
 @router.delete("/{import_id}", status_code=204)
-async def delete_import(
+def delete_import(
     org_id: int,
     import_id: int,
     db: Annotated[Session, Depends(get_db)],

@@ -1,0 +1,716 @@
+[
+  {
+    "nummer": "WC001",
+    "inkooppakket": "Abonnementen en lidmaatschappen",
+    "groep": "9-Financieel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC002",
+    "inkooppakket": "Accountant",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC003",
+    "inkooppakket": "Achterwacht",
+    "groep": "11-Sociaal",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC004",
+    "inkooppakket": "Afval",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC005",
+    "inkooppakket": "Arbo",
+    "groep": "8-Personeel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC006",
+    "inkooppakket": "Architecten",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC007",
+    "inkooppakket": "Asbest",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC008",
+    "inkooppakket": "Automatische deuren",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC009",
+    "inkooppakket": "AV middelen",
+    "groep": "5-ICT",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC010",
+    "inkooppakket": "Bedrijfskleding",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC011",
+    "inkooppakket": "Bedrijfsorganisatie advies",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC012",
+    "inkooppakket": "Beton",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC013",
+    "inkooppakket": "Beveiliging",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC014",
+    "inkooppakket": "Bewonersbegeleiding",
+    "groep": "11-Sociaal",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC015",
+    "inkooppakket": "BKT",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC016",
+    "inkooppakket": "Bliksembeveiliging",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC017",
+    "inkooppakket": "Bouwadvies",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC018",
+    "inkooppakket": "Brandbeveiliging - blusmiddelen en nv",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC019",
+    "inkooppakket": "Brandbeveiliging - BMI",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC020",
+    "inkooppakket": "Calamiteitenpartners",
+    "groep": "11-Sociaal",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC021",
+    "inkooppakket": "Camerabeveiliging",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC022",
+    "inkooppakket": "Catering",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC023",
+    "inkooppakket": "CLM software",
+    "groep": "5-ICT",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC024",
+    "inkooppakket": "Conditiemeting",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC025",
+    "inkooppakket": "CV Collectief",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC026",
+    "inkooppakket": "CV Individueel",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC027",
+    "inkooppakket": "CV, MV en WTW",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC028",
+    "inkooppakket": "Dagelijks onderhoud",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC029",
+    "inkooppakket": "Dakgoten",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC030",
+    "inkooppakket": "Dakgotenreiniging",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC031",
+    "inkooppakket": "Dakonderhoud",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC032",
+    "inkooppakket": "Druk- en vouwwerk",
+    "groep": "10-Communicatie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC033",
+    "inkooppakket": "Drukwerk en repro",
+    "groep": "10-Communicatie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC034",
+    "inkooppakket": "Duurzaamheid aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC035",
+    "inkooppakket": "Elektrotechniek installateurs onderhoud",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC036",
+    "inkooppakket": "Energie",
+    "groep": "7-Energie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC037",
+    "inkooppakket": "Energielabels",
+    "groep": "7-Energie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC038",
+    "inkooppakket": "Financieel adviseur",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC039",
+    "inkooppakket": "Gebouwbeheer",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC040",
+    "inkooppakket": "Geschenken",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC041",
+    "inkooppakket": "Gevelonderhoud",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC042",
+    "inkooppakket": "Glas",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC043",
+    "inkooppakket": "Groenonderhoud",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC044",
+    "inkooppakket": "Hang en sluitwerk aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC045",
+    "inkooppakket": "Huisstijl",
+    "groep": "10-Communicatie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC046",
+    "inkooppakket": "Hydroforen",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC047",
+    "inkooppakket": "ICT",
+    "groep": "5-ICT",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC048",
+    "inkooppakket": "Inleen- en uitzendkrachten",
+    "groep": "8-Personeel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC049",
+    "inkooppakket": "Intercom",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC050",
+    "inkooppakket": "Isolatie",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC051",
+    "inkooppakket": "Juridisch adviseur",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC052",
+    "inkooppakket": "Kantoor en werkplaatsinrichting",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC053",
+    "inkooppakket": "Kantoorartikelen",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC054",
+    "inkooppakket": "Kathodische bescherming",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC055",
+    "inkooppakket": "Ketenpartners",
+    "groep": "11-Sociaal",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC056",
+    "inkooppakket": "Klanttevredenheidsmeting",
+    "groep": "11-Sociaal",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC057",
+    "inkooppakket": "Kleding",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC058",
+    "inkooppakket": "Klimaatinstallaties",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC059",
+    "inkooppakket": "Kozijnen",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC060",
+    "inkooppakket": "Leefbaarheid",
+    "groep": "11-Sociaal",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC061",
+    "inkooppakket": "Leegstandsbeheer",
+    "groep": "12-Vastgoedbeheer",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC062",
+    "inkooppakket": "Legionella",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC063",
+    "inkooppakket": "Lidmaatschappen, abonnementen en boeken",
+    "groep": "9-Financieel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC064",
+    "inkooppakket": "Liftadviseur",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC065",
+    "inkooppakket": "Liften",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC066",
+    "inkooppakket": "Loodgieter",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC067",
+    "inkooppakket": "Makelaar",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC068",
+    "inkooppakket": "Materiaal",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC069",
+    "inkooppakket": "Meetapparatuur",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC070",
+    "inkooppakket": "Meldkamer",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC071",
+    "inkooppakket": "Meubilair",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC072",
+    "inkooppakket": "Milieu advies",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC073",
+    "inkooppakket": "Milieu/Verontreiniging aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC074",
+    "inkooppakket": "MO en DO",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC075",
+    "inkooppakket": "Mobiliteit",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC076",
+    "inkooppakket": "Mutatie onderhoud",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC077",
+    "inkooppakket": "MV en WTW",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC078",
+    "inkooppakket": "Nieuwbouw aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC079",
+    "inkooppakket": "NOM Woningen",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC080",
+    "inkooppakket": "Notaris",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC081",
+    "inkooppakket": "Opleiding",
+    "groep": "8-Personeel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC082",
+    "inkooppakket": "Overige aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC083",
+    "inkooppakket": "Overige adviesdiensten",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC084",
+    "inkooppakket": "Overige bedrijfskosten",
+    "groep": "9-Financieel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC085",
+    "inkooppakket": "Overige beheerdiensten",
+    "groep": "12-Vastgoedbeheer",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC086",
+    "inkooppakket": "Parkeerkosten",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC087",
+    "inkooppakket": "Plattegronden",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC088",
+    "inkooppakket": "PO aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC089",
+    "inkooppakket": "Postverwerking",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC090",
+    "inkooppakket": "PR/marketing/ communicatie",
+    "groep": "10-Communicatie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC091",
+    "inkooppakket": "Prijzenboek",
+    "groep": "6-Advies",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC092",
+    "inkooppakket": "Projectontwikkelaar",
+    "groep": "12-Vastgoedbeheer",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC093",
+    "inkooppakket": "Reclame en Advertentiekosten",
+    "groep": "10-Communicatie",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC094",
+    "inkooppakket": "Riolering",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC095",
+    "inkooppakket": "Rookmelders",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC096",
+    "inkooppakket": "Schilderwerk",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC097",
+    "inkooppakket": "Schoonmaak",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC098",
+    "inkooppakket": "Sloopwerken aannemer",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC099",
+    "inkooppakket": "Straatwerk",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC100",
+    "inkooppakket": "Technische installaties",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC101",
+    "inkooppakket": "Telecom",
+    "groep": "5-ICT",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC102",
+    "inkooppakket": "Telefonie",
+    "groep": "5-ICT",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC103",
+    "inkooppakket": "Timmerwerk",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC104",
+    "inkooppakket": "Toegangscontrole",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC105",
+    "inkooppakket": "Valbeveiliging",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC106",
+    "inkooppakket": "Veiligheid",
+    "groep": "3-Veiligheid",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC107",
+    "inkooppakket": "Verlichting",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC108",
+    "inkooppakket": "Verzekering",
+    "groep": "9-Financieel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC109",
+    "inkooppakket": "Verzend- en transportdiensten",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC110",
+    "inkooppakket": "Voegwerk",
+    "groep": "1-Vastgoed",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC111",
+    "inkooppakket": "VVE beheer",
+    "groep": "12-Vastgoedbeheer",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC112",
+    "inkooppakket": "Vve's",
+    "groep": "12-Vastgoedbeheer",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC113",
+    "inkooppakket": "Wagenpark",
+    "groep": "4-Facilitair",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC114",
+    "inkooppakket": "Werktuigbouwkundige installateurs",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC115",
+    "inkooppakket": "Werving & selectiekosten",
+    "groep": "8-Personeel",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC116",
+    "inkooppakket": "WKO",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC117",
+    "inkooppakket": "Zendmasten",
+    "groep": "12-Vastgoedbeheer",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC118",
+    "inkooppakket": "Zonnepanelen",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  },
+  {
+    "nummer": "WC119",
+    "inkooppakket": "Zonwering",
+    "groep": "2-Installaties",
+    "classificatie": ""
+  }
+]

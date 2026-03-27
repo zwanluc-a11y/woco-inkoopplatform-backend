@@ -70,7 +70,7 @@ def _contract_to_response(contract: Contract, db: Session | None = None) -> dict
 
 
 @router.get("")
-async def list_contracts(
+def list_contracts(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -88,7 +88,7 @@ async def list_contracts(
 
 
 @router.post("")
-async def create_contract(
+def create_contract(
     org_id: int,
     data: ContractCreate,
     db: Annotated[Session, Depends(get_db)],
@@ -136,7 +136,7 @@ async def create_contract(
 
 
 @router.get("/{contract_id}")
-async def get_contract(
+def get_contract(
     org_id: int,
     contract_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -153,7 +153,7 @@ async def get_contract(
 
 
 @router.put("/{contract_id}")
-async def update_contract(
+def update_contract(
     org_id: int,
     contract_id: int,
     data: ContractUpdate,
@@ -201,7 +201,7 @@ async def update_contract(
 
 
 @router.delete("/{contract_id}")
-async def delete_contract(
+def delete_contract(
     org_id: int,
     contract_id: int,
     db: Annotated[Session, Depends(get_db)],
@@ -224,7 +224,7 @@ async def delete_contract(
 
 
 @router.get("/summary/stats")
-async def contract_stats(
+def contract_stats(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -255,7 +255,7 @@ async def contract_stats(
 
 
 @router.post("/match-suppliers")
-async def match_contract_suppliers(
+def match_contract_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

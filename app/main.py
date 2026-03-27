@@ -10,12 +10,12 @@ from starlette.responses import JSONResponse
 
 from app.config import settings as app_settings
 from app.database import Base, SessionLocal, engine
-from app.services.seed_service import seed_inkoop_categories, seed_user_organizations, seed_platform_eigenaar
+from app.services.seed_service import seed_inkoop_categories, seed_user_organizations, seed_platform_eigenaar, seed_woningcorporaties, seed_leveranciers
 
 # Import all models so Base.metadata knows about every table
 import app.models  # noqa: F401
 
-from app.api import auth, organizations, categories, suppliers, imports, spend, categorization, risk, contracts, calendar, export, dashboard, settings, invitations, members, team, supplier_master
+from app.api import auth, organizations, categories, suppliers, imports, spend, categorization, risk, contracts, calendar, export, dashboard, settings, invitations, members, team, supplier_master, corporaties, referentie
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,9 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
 async def seed_initial_data() -> None:
     db = SessionLocal()
     try:
+        seed_woningcorporaties(db)
         seed_inkoop_categories(db)
+        seed_leveranciers(db)
         seed_user_organizations(db)
         seed_platform_eigenaar(db)
     finally:
@@ -40,6 +42,9 @@ def _sqlite_add_missing_columns() -> None:
     columns_to_add = [
         ("import_sessions", "progress_current", "INTEGER DEFAULT 0"),
         ("import_sessions", "progress_total", "INTEGER DEFAULT 0"),
+        ("inkoop_categories", "classificatie", "VARCHAR(50)"),
+        ("organizations", "corporatie_l_nummer", "VARCHAR(20)"),
+        ("contracts", "contract_vorm", "VARCHAR(100)"),
     ]
     for table, col, col_type in columns_to_add:
         try:
@@ -162,6 +167,8 @@ app.include_router(invitations.router, prefix="/api")
 app.include_router(members.router, prefix="/api")
 app.include_router(team.router, prefix="/api")
 app.include_router(supplier_master.router, prefix="/api")
+app.include_router(corporaties.router, prefix="/api")
+app.include_router(referentie.router, prefix="/api")
 
 
 @app.get("/")

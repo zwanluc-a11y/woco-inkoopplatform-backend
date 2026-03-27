@@ -14,12 +14,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
+def get_me(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
 
 @router.put("/me", response_model=UserResponse)
-async def update_me(
+def update_me(
     body: dict,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
@@ -39,7 +39,7 @@ async def update_me(
 
 
 @router.post("/promote-first-admin")
-async def promote_first_admin(
+def promote_first_admin(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
@@ -54,7 +54,7 @@ async def promote_first_admin(
 
 
 @router.get("/bootstrap")
-async def bootstrap_admin(db: Session = Depends(get_db)):
+def bootstrap_admin(db: Session = Depends(get_db)):
     """Bootstrap: promote first real user to eigenaar. Fixes ghost records with empty email."""
     existing_owner = db.query(User).filter(User.platform_role == "eigenaar").first()
     if existing_owner and existing_owner.email and existing_owner.clerk_id:
@@ -75,7 +75,7 @@ async def bootstrap_admin(db: Session = Depends(get_db)):
 
 
 @router.get("/invite/{token}")
-async def get_invitation_info(token: str, db: Annotated[Session, Depends(get_db)]):
+def get_invitation_info(token: str, db: Annotated[Session, Depends(get_db)]):
     invitation = db.query(Invitation).filter(
         Invitation.token == token, Invitation.is_used == False, Invitation.expires_at > datetime.utcnow()
     ).first()
@@ -86,7 +86,7 @@ async def get_invitation_info(token: str, db: Annotated[Session, Depends(get_db)
 
 
 @router.post("/invite/{token}/accept")
-async def accept_invitation(token: str, db: Annotated[Session, Depends(get_db)], current_user: Annotated[User, Depends(get_current_user)]):
+def accept_invitation(token: str, db: Annotated[Session, Depends(get_db)], current_user: Annotated[User, Depends(get_current_user)]):
     invitation = db.query(Invitation).filter(
         Invitation.token == token, Invitation.is_used == False, Invitation.expires_at > datetime.utcnow()
     ).first()

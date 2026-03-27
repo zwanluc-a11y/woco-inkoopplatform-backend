@@ -18,4 +18,5 @@ class InkoopCategory(Base):
     soort_inkoop: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, default="")
     cpv_code: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     homogeen: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    classificatie: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)  # Basis, Contract, Kern, Strategisch
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

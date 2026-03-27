@@ -34,7 +34,7 @@ class CreateInvitationRequest(BaseModel):
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 @limiter.limit("10/hour")
-async def create_invitation(
+def create_invitation(
     request: Request,  # required by slowapi
     org_id: int,
     data: CreateInvitationRequest,
@@ -77,7 +77,7 @@ async def create_invitation(
 
 
 @router.get("")
-async def list_invitations(
+def list_invitations(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -108,7 +108,7 @@ async def list_invitations(
 
 
 @router.delete("/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_invitation(
+def delete_invitation(
     org_id: int,
     invitation_id: int,
     db: Annotated[Session, Depends(get_db)],

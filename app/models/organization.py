@@ -11,6 +11,7 @@ class Organization(Base):
     name: Mapped[str] = mapped_column(String(255))
     org_type: Mapped[str] = mapped_column(String(50))  # woningcorporatie_klein, _middel, _groot, overig
     category_system: Mapped[str] = mapped_column(String(20), default="aedes")  # aedes, bu_woco
+    corporatie_l_nummer: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

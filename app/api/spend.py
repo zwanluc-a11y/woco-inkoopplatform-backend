@@ -24,66 +24,36 @@ router = APIRouter(
 
 
 @router.get("/summary")
-async def spend_summary(
+def spend_summary(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    import logging as _log
-    _logger = _log.getLogger(__name__)
-    try:
-        _logger.info("spend_summary called for org_id=%s, user=%s", org_id, current_user.id)
-        rows = (
-            db.query(
-                SupplierYearlySpend.year,
-                func.sum(SupplierYearlySpend.total_amount).label("total_spend"),
-                func.count(SupplierYearlySpend.supplier_id.distinct()).label("supplier_count"),
-                func.sum(SupplierYearlySpend.transaction_count).label("transaction_count"),
-            )
-            .filter(SupplierYearlySpend.organization_id == org_id)
-            .group_by(SupplierYearlySpend.year)
-            .order_by(SupplierYearlySpend.year)
-            .all()
+    rows = (
+        db.query(
+            SupplierYearlySpend.year,
+            func.sum(SupplierYearlySpend.total_amount).label("total_spend"),
+            func.count(SupplierYearlySpend.supplier_id.distinct()).label("supplier_count"),
+            func.sum(SupplierYearlySpend.transaction_count).label("transaction_count"),
         )
-        result = [
-            {
-                "year": r.year,
-                "total_spend": float(r.total_spend or 0),
-                "supplier_count": r.supplier_count,
-                "transaction_count": r.transaction_count,
-            }
-            for r in rows
-        ]
-        _logger.info("spend_summary returning %d rows", len(result))
-        return result
-    except Exception as e:
-        _logger.exception("spend_summary CRASHED: %s", e)
-        raise
-
-
-@router.get("/debug-test")
-async def debug_test(org_id: int):
-    """No-auth debug endpoint to test connectivity."""
-    return {"ok": True, "org_id": org_id, "message": "debug endpoint works"}
-
-
-@router.get("/debug-summary")
-async def debug_summary(
-    org_id: int,
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    """Debug: same as summary but with explicit error handling."""
-    import logging as _log
-    _logger = _log.getLogger(__name__)
-    _logger.info("debug_summary: start for org_id=%s user=%s", org_id, current_user.id)
-
-    # Step 1: test auth only (return early)
-    return [{"year": 2025, "total_spend": 0, "supplier_count": 0, "transaction_count": 0}]
+        .filter(SupplierYearlySpend.organization_id == org_id)
+        .group_by(SupplierYearlySpend.year)
+        .order_by(SupplierYearlySpend.year)
+        .all()
+    )
+    return [
+        {
+            "year": r.year,
+            "total_spend": float(r.total_spend or 0),
+            "supplier_count": r.supplier_count,
+            "transaction_count": r.transaction_count,
+        }
+        for r in rows
+    ]
 
 
 @router.get("/pivot")
-async def spend_pivot(
+def spend_pivot(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -170,7 +140,7 @@ async def spend_pivot(
 
 
 @router.get("/by-category")
-async def spend_by_category(
+def spend_by_category(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -206,7 +176,7 @@ async def spend_by_category(
 
 
 @router.get("/category-growth")
-async def category_growth(
+def category_growth(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -289,7 +259,7 @@ async def category_growth(
 
 
 @router.get("/new-suppliers")
-async def new_suppliers(
+def new_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -404,7 +374,7 @@ class BeinvloedbaarheidUpdate(BaseModel):
 
 
 @router.put("/suppliers/{supplier_id}/beinvloedbaar")
-async def toggle_beinvloedbaar(
+def toggle_beinvloedbaar(
     org_id: int,
     supplier_id: int,
     body: BeinvloedbaarheidUpdate,
@@ -468,7 +438,7 @@ _NB_COMPILED = [(re.compile(p, re.IGNORECASE), reason) for p, reason in _NB_PATT
 
 
 @router.get("/suggest-niet-beinvloedbaar")
-async def suggest_niet_beinvloedbaar(
+def suggest_niet_beinvloedbaar(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -521,7 +491,7 @@ class BulkBeinvloedbaarheidUpdate(BaseModel):
 
 
 @router.put("/bulk-beinvloedbaar")
-async def bulk_toggle_beinvloedbaar(
+def bulk_toggle_beinvloedbaar(
     org_id: int,
     body: BulkBeinvloedbaarheidUpdate,
     db: Annotated[Session, Depends(get_db)],
@@ -544,7 +514,7 @@ async def bulk_toggle_beinvloedbaar(
 
 
 @router.get("/multi-year-trends")
-async def multi_year_trends(
+def multi_year_trends(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

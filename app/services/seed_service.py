@@ -1,40 +1,154 @@
 """
 Seed helpers – called once at application startup.
 
-* seed_inkoop_categories – imports the PIANOo inkooppakketten Excel or JSON
-  seed (if the table is still empty)
+* seed_woningcorporaties – imports 259 Dutch housing corporations
+* seed_inkoop_categories – imports PIANOo + WoCo sector categories
+* seed_leveranciers – imports 1179 known suppliers into master database
 * seed_user_organizations – backfills UserOrganization for existing data
+* seed_platform_eigenaar – ensures at least one platform admin
 """
 
 import json
 import logging
+import re
 from pathlib import Path
 
-import pandas as pd
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.models.category import InkoopCategory
+from app.models.supplier_master_category import SupplierMasterCategory
 from app.models.user_organization import UserOrganization
+from app.models.woningcorporatie import WoningCorporatie
 
 logger = logging.getLogger(__name__)
 
-# JSON seed files bundled with the app
 _SEED_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 AEDES_JSON_PATH = _SEED_DIR / "categories" / "aedes_categories.json"
 BU_WOCO_JSON_PATH = _SEED_DIR / "categories" / "bu_woco_categories.json"
+WOCO_JSON_PATH = _SEED_DIR / "categories" / "woco_categories.json"
+CORPORATIES_JSON_PATH = _SEED_DIR / "corporaties.json"
+LEVERANCIERS_JSON_PATH = _SEED_DIR / "leveranciers.json"
 
 
-# ── Backfill UserOrganization for existing data ──────────────────────
+def _normalize_name(name: str) -> str:
+    """Normalize a supplier name for matching."""
+    n = name.lower().strip()
+    n = re.sub(r"\b(b\.?v\.?|n\.?v\.?|v\.?o\.?f\.?|c\.?v\.?)\b", "", n)
+    n = re.sub(r"[^a-z0-9\s]", "", n)
+    n = re.sub(r"\s+", " ", n).strip()
+    return n
+
+
+# ── Woningcorporaties ───────────────────────────────────────────────
+def seed_woningcorporaties(db: Session) -> None:
+    """Seed the 259 Dutch housing corporations from bronbestand."""
+    count = db.query(WoningCorporatie).count()
+    if count > 0:
+        logger.info("woningcorporaties table has %d rows – skipping seed.", count)
+        return
+
+    if not CORPORATIES_JSON_PATH.exists():
+        logger.warning("No corporaties seed data at '%s'", CORPORATIES_JSON_PATH)
+        return
+
+    with open(CORPORATIES_JSON_PATH, "r", encoding="utf-8") as f:
+        corps = json.load(f)
+
+    for c in corps:
+        db.add(WoningCorporatie(
+            l_nummer=c["l_nummer"],
+            naam=c["naam"],
+            provincie=c.get("provincie", ""),
+            grootte_klasse=c.get("grootte_klasse", ""),
+            aantal_vhe=c.get("aantal_vhe", ""),
+        ))
+
+    db.commit()
+    logger.info("Seeded %d woningcorporaties.", len(corps))
+
+
+# ── WoCo sector categories ──────────────────────────────────────────
+def seed_woco_categories(db: Session) -> None:
+    """Seed the 119 WoCo sector-specific categories."""
+    count = db.query(InkoopCategory).filter(
+        InkoopCategory.category_system == "woco"
+    ).count()
+    if count > 0:
+        logger.info("woco categories already seeded (%d rows) – skipping.", count)
+        return
+
+    if not WOCO_JSON_PATH.exists():
+        logger.warning("No WoCo categories seed data at '%s'", WOCO_JSON_PATH)
+        return
+
+    with open(WOCO_JSON_PATH, "r", encoding="utf-8") as f:
+        categories = json.load(f)
+
+    for cat in categories:
+        db.add(InkoopCategory(
+            category_system="woco",
+            groep=cat.get("groep", ""),
+            sector=None,
+            nummer=cat.get("nummer", ""),
+            inkooppakket=cat.get("inkooppakket", ""),
+            definitie=None,
+            soort_inkoop="",
+            classificatie=cat.get("classificatie") or None,
+        ))
+
+    db.commit()
+    logger.info("Seeded %d WoCo sector categories.", len(categories))
+
+
+# ── Leveranciers (supplier master) ──────────────────────────────────
+def seed_leveranciers(db: Session) -> None:
+    """Seed 1179 known suppliers into the supplier master database."""
+    if not LEVERANCIERS_JSON_PATH.exists():
+        logger.warning("No leveranciers seed data at '%s'", LEVERANCIERS_JSON_PATH)
+        return
+
+    existing = db.query(SupplierMasterCategory).filter(
+        SupplierMasterCategory.source == "seed"
+    ).count()
+    if existing > 0:
+        logger.info("Leveranciers already seeded (%d rows) – skipping.", existing)
+        return
+
+    with open(LEVERANCIERS_JSON_PATH, "r", encoding="utf-8") as f:
+        leveranciers = json.load(f)
+
+    inserted = 0
+    for lev in leveranciers:
+        naam = lev["naam"].strip()
+        if not naam:
+            continue
+        normalized = _normalize_name(naam)
+        exists = db.query(SupplierMasterCategory).filter(
+            SupplierMasterCategory.normalized_name == normalized,
+        ).first()
+        if exists:
+            continue
+
+        db.add(SupplierMasterCategory(
+            normalized_name=normalized,
+            category_system="woco",
+            display_name=naam,
+            category_id=None,
+            category_nummer="",
+            category_name="",
+            usage_count=1,
+            source="seed",
+            notes=f"KvK: {lev.get('kvk_nummer', '')}" if lev.get("kvk_nummer") else None,
+        ))
+        inserted += 1
+
+    db.commit()
+    logger.info("Seeded %d leveranciers into supplier master.", inserted)
+
+
+# ── Backfill UserOrganization for existing data ─────────────────────
 def seed_user_organizations(db: Session) -> None:
-    """Ensure every Organization has at least one UserOrganization row.
-
-    This is a one-time migration for existing data created before
-    the multi-tenancy feature was introduced.
-
-    Uses raw SQL to avoid issues when ORM model has columns that
-    don't exist in the database yet (e.g. during first migration).
-    """
+    """Ensure every Organization has at least one UserOrganization row."""
     try:
         from sqlalchemy import text
         rows = db.execute(text(
@@ -42,7 +156,7 @@ def seed_user_organizations(db: Session) -> None:
             "WHERE o.id NOT IN (SELECT organization_id FROM user_organizations)"
         )).fetchall()
     except Exception as e:
-        logger.warning("seed_user_organizations skipped (table may not exist yet): %s", e)
+        logger.warning("seed_user_organizations skipped: %s", e)
         db.rollback()
         return
 
@@ -56,139 +170,54 @@ def seed_user_organizations(db: Session) -> None:
             role="eigenaar",
         ))
     db.commit()
-    logger.info(
-        "Backfilled UserOrganization for %d existing organizations.",
-        len(rows),
-    )
+    logger.info("Backfilled UserOrganization for %d existing organizations.", len(rows))
 
 
-# ── Ensure at least one platform eigenaar ─────────────────────────────
+# ── Ensure at least one platform eigenaar ────────────────────────────
 def seed_platform_eigenaar(db: Session) -> None:
-    """Ensure at least one platform eigenaar exists.
-
-    If no user has platform_role set, promote the first user (by id).
-    """
+    """If no user has platform_role set, promote the first user."""
     try:
         from sqlalchemy import text
         has_platform_user = db.execute(
             text("SELECT 1 FROM users WHERE platform_role IS NOT NULL LIMIT 1")
         ).first()
-
         if has_platform_user:
             return
-
         first_user = db.execute(
             text("SELECT id, email FROM users ORDER BY id ASC LIMIT 1")
         ).first()
-
         if first_user:
             db.execute(
                 text("UPDATE users SET platform_role = 'eigenaar' WHERE id = :uid"),
                 {"uid": first_user[0]},
             )
             db.commit()
-            logger.info(
-                "Promoted user '%s' (id=%d) to platform eigenaar (migration).",
-                first_user[1], first_user[0],
-            )
+            logger.info("Promoted user '%s' (id=%d) to platform eigenaar.", first_user[1], first_user[0])
     except Exception as e:
         logger.warning("seed_platform_eigenaar skipped: %s", e)
         db.rollback()
 
 
-# ── PIANOo categories ────────────────────────────────────────────────
+# ── PIANOo categories (legacy) ──────────────────────────────────────
 def seed_inkoop_categories(db: Session) -> None:
-    """Read the PIANOo Excel file and populate the inkoop_categories table.
-
-    The function is a no-op when PIANOo categories already exist, so it is
-    safe to call on every startup.
-    """
+    """Seed Aedes and BU WoCo categories from JSON files."""
     count = db.query(InkoopCategory).filter(
         InkoopCategory.category_system == "aedes"
     ).count()
     if count > 0:
-        logger.info(
-            "inkoop_categories table already has %d PIANOo rows – skipping seed.", count
-        )
-        return
-
-    # Seed Aedes categories
-    if AEDES_JSON_PATH.exists():
-        logger.info("Seeding Aedes categories from JSON '%s' ...", AEDES_JSON_PATH)
-        _seed_from_json(db, AEDES_JSON_PATH, "aedes")
+        logger.info("inkoop_categories already has %d Aedes rows – skipping seed.", count)
     else:
-        logger.warning("No Aedes seed data found at '%s'", AEDES_JSON_PATH)
+        if AEDES_JSON_PATH.exists():
+            _seed_from_json(db, AEDES_JSON_PATH, "aedes")
 
-    # Seed BU WoCo categories
     bu_woco_count = db.query(InkoopCategory).filter(
         InkoopCategory.category_system == "bu_woco"
     ).count()
     if bu_woco_count == 0 and BU_WOCO_JSON_PATH.exists():
-        logger.info("Seeding BU WoCo categories from JSON '%s' ...", BU_WOCO_JSON_PATH)
         _seed_from_json(db, BU_WOCO_JSON_PATH, "bu_woco")
 
-    return
-
-    logger.info("Reading PIANOo categories from '%s' …", excel_path)
-    df = pd.read_excel(excel_path)
-
-    # ── Forward-fill the 'Groep' column ───────────────────────────────
-    df["Groep"] = df["Groep"].ffill()
-
-    # ── Drop separator / blank rows (no Inkooppakket value) ───────────
-    df = df.dropna(subset=["Inkooppakket"])
-
-    # ── Map column names to model fields ──────────────────────────────
-    cpv_col = [c for c in df.columns if c.lower().startswith("cpv")]
-    cpv_col = cpv_col[0] if cpv_col else None
-
-    inserted = 0
-    for _, row in df.iterrows():
-        homogeen_raw = row.get("Homogeen")
-        if pd.isna(homogeen_raw):
-            homogeen = None
-        else:
-            homogeen = str(homogeen_raw).strip().lower() == "ja"
-
-        nummer_raw = row.get("Nummer")
-        if pd.isna(nummer_raw):
-            continue
-        nummer = str(int(nummer_raw)) if isinstance(nummer_raw, float) else str(nummer_raw)
-
-        soort_col = [c for c in df.columns if "soort inkoop" in c.lower() and "nieuw" in c.lower()]
-        soort_inkoop = ""
-        if soort_col:
-            soort_val = row.get(soort_col[0])
-            soort_inkoop = str(soort_val).strip() if not pd.isna(soort_val) else ""
-
-        cpv_value = None
-        if cpv_col:
-            raw = row.get(cpv_col)
-            cpv_value = str(raw).strip() if not pd.isna(raw) else None
-
-        definitie_raw = row.get("Definitie / voorbeelden")
-        if definitie_raw is None or pd.isna(definitie_raw):
-            def_cols = [c for c in df.columns if c.lower().startswith("definitie")]
-            if def_cols:
-                definitie_raw = row.get(def_cols[0])
-
-        definitie = str(definitie_raw).strip() if definitie_raw is not None and not pd.isna(definitie_raw) else None
-
-        category = InkoopCategory(
-            groep=str(row["Groep"]).strip(),
-            sector=str(row["Sector"]).strip() if not pd.isna(row.get("Sector")) else None,
-            nummer=nummer,
-            inkooppakket=str(row["Inkooppakket"]).strip(),
-            definitie=definitie,
-            soort_inkoop=soort_inkoop,
-            cpv_code=cpv_value,
-            homogeen=homogeen,
-        )
-        db.add(category)
-        inserted += 1
-
-    db.commit()
-    logger.info("Inserted %d PIANOo categories.", inserted)
+    # Always seed WoCo categories
+    seed_woco_categories(db)
 
 
 def _seed_from_json(db: Session, json_path: Path, category_system: str = "aedes") -> None:
@@ -198,7 +227,7 @@ def _seed_from_json(db: Session, json_path: Path, category_system: str = "aedes"
 
     inserted = 0
     for cat in categories:
-        category = InkoopCategory(
+        db.add(InkoopCategory(
             category_system=category_system,
             groep=cat.get("groep", ""),
             sector=cat.get("sector"),
@@ -208,11 +237,8 @@ def _seed_from_json(db: Session, json_path: Path, category_system: str = "aedes"
             soort_inkoop=cat.get("soort_inkoop", ""),
             cpv_code=cat.get("cpv_code"),
             homogeen=cat.get("homogeen"),
-        )
-        db.add(category)
+        ))
         inserted += 1
 
     db.commit()
     logger.info("Inserted %d %s categories from JSON.", inserted, category_system)
-
-

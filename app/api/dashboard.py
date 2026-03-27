@@ -29,7 +29,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 @router.get("/stats")
-async def dashboard_stats(
+def dashboard_stats(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
@@ -113,7 +113,7 @@ async def dashboard_stats(
 
 
 @router.get("/organizations/{org_id}/overview")
-async def organization_overview(
+def organization_overview(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -625,7 +625,7 @@ async def organization_overview(
 
 @router.post("/organizations/{org_id}/overview/recommendations")
 @limiter.limit("3/minute")
-async def generate_recommendations(
+def generate_recommendations(
     org_id: int,
     request: Request,  # required by slowapi
     db: Annotated[Session, Depends(get_db)],
@@ -658,7 +658,7 @@ async def generate_recommendations(
 
 
 @router.get("/organizations/{org_id}/stats")
-async def organization_stats(
+def organization_stats(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],

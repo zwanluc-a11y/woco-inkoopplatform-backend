@@ -37,7 +37,7 @@ class UpdatePhaseRequest(BaseModel):
 
 
 @router.post("/generate")
-async def generate_calendar(
+def generate_calendar(
     org_id: int,
     data: GenerateCalendarRequest,
     db: Annotated[Session, Depends(get_db)],
@@ -53,7 +53,7 @@ async def generate_calendar(
 
 
 @router.get("")
-async def get_calendar(
+def get_calendar(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -65,7 +65,7 @@ async def get_calendar(
 
 
 @router.put("/items/{item_id}")
-async def update_calendar_item(
+def update_calendar_item(
     org_id: int,
     item_id: int,
     data: UpdateCalendarItemRequest,
@@ -83,7 +83,7 @@ async def update_calendar_item(
 
 
 @router.put("/items/{item_id}/phases/{phase_id}")
-async def update_phase(
+def update_phase(
     org_id: int,
     item_id: int,
     phase_id: int,

@@ -16,6 +16,7 @@ from app.models.user_organization import UserOrganization
 from app.models.invitation import Invitation
 from app.models.app_setting import AppSetting
 from app.models.supplier_master_category import SupplierMasterCategory
+from app.models.woningcorporatie import WoningCorporatie
 
 __all__ = [
     "User",
@@ -37,4 +38,5 @@ __all__ = [
     "Invitation",
     "AppSetting",
     "SupplierMasterCategory",
+    "WoningCorporatie",
 ]

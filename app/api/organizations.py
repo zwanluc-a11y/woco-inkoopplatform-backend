@@ -55,7 +55,7 @@ DEFAULT_THRESHOLDS = {
 
 
 @router.get("", response_model=list[OrganizationResponse])
-async def list_organizations(
+def list_organizations(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
@@ -73,7 +73,7 @@ async def list_organizations(
 
 
 @router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
-async def create_organization(
+def create_organization(
     data: OrganizationCreate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -117,7 +117,7 @@ async def create_organization(
 
 
 @router.get("/{org_id}", response_model=OrganizationResponse)
-async def get_organization(
+def get_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -129,7 +129,7 @@ async def get_organization(
 
 
 @router.put("/{org_id}", response_model=OrganizationResponse)
-async def update_organization(
+def update_organization(
     org_id: int,
     data: OrganizationUpdate,
     db: Annotated[Session, Depends(get_db)],
@@ -147,7 +147,7 @@ async def update_organization(
 
 
 @router.get("/{org_id}/thresholds", response_model=list[ThresholdResponse])
-async def get_thresholds(
+def get_thresholds(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -156,7 +156,7 @@ async def get_thresholds(
 
 
 @router.put("/{org_id}/thresholds/{threshold_id}", response_model=ThresholdResponse)
-async def update_threshold(
+def update_threshold(
     org_id: int,
     threshold_id: int,
     data: ThresholdUpdate,
@@ -178,7 +178,7 @@ async def update_threshold(
 
 
 @router.delete("/{org_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_organization(
+def delete_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -248,7 +248,7 @@ def _brand_response(org):
 
 
 @router.post("/{org_id}/brand/logo")
-async def upload_brand_logo(
+def upload_brand_logo(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
@@ -274,7 +274,7 @@ async def upload_brand_logo(
 
 
 @router.post("/{org_id}/brand/screenshot")
-async def upload_brand_screenshot(
+def upload_brand_screenshot(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
@@ -313,7 +313,7 @@ async def upload_brand_screenshot(
 
 # Keep legacy endpoint for backwards compatibility
 @router.post("/{org_id}/brand")
-async def upload_brand_legacy(
+def upload_brand_legacy(
     org_id: int,
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
@@ -350,7 +350,7 @@ async def upload_brand_legacy(
 
 
 @router.put("/{org_id}/brand-colors")
-async def update_brand_colors(
+def update_brand_colors(
     org_id: int,
     data: BrandColorsUpdate,
     db: Annotated[Session, Depends(get_db)],
@@ -368,7 +368,7 @@ async def update_brand_colors(
 
 
 @router.get("/{org_id}/brand")
-async def get_brand_info(
+def get_brand_info(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
@@ -413,7 +413,7 @@ def _restore_from_db(org, db):
 
 
 @router.get("/{org_id}/brand/image/{image_type}")
-async def get_brand_image(
+def get_brand_image(
     org_id: int,
     image_type: Literal["logo", "screenshot"],
     db: Annotated[Session, Depends(get_db)],
