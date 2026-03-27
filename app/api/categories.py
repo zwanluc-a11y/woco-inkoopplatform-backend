@@ -10,20 +10,20 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 
 
 @router.get("", response_model=list[InkoopCategoryResponse])
-async def list_categories(
+def list_categories(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    category_system: Optional[str] = Query("aedes"),
+    category_system: Optional[str] = Query("woco"),
 ):
     query = db.query(InkoopCategory).filter(InkoopCategory.category_system == category_system)
     return query.order_by(InkoopCategory.nummer).all()
 
 
 @router.get("/grouped")
-async def list_categories_grouped(
+def list_categories_grouped(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    category_system: Optional[str] = Query("aedes"),
+    category_system: Optional[str] = Query("woco"),
 ):
     query = db.query(InkoopCategory).filter(InkoopCategory.category_system == category_system)
     categories = query.order_by(InkoopCategory.groep, InkoopCategory.nummer).all()
@@ -36,9 +36,9 @@ async def list_categories_grouped(
 
 
 @router.get("/search", response_model=list[InkoopCategoryResponse])
-async def search_categories(
+def search_categories(
     q: str = Query(..., min_length=2),
-    category_system: Optional[str] = Query("aedes"),
+    category_system: Optional[str] = Query("woco"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

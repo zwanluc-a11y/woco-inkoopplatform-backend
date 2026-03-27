@@ -17,6 +17,7 @@ class InkoopCategoryResponse(BaseModel):
     soort_inkoop: Optional[str] = ""
     cpv_code: Optional[str] = None
     homogeen: Optional[bool] = None
+    classificatie: Optional[str] = None
     created_at: datetime
 
 

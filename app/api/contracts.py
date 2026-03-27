@@ -50,6 +50,7 @@ def _contract_to_response(contract: Contract, db: Session | None = None) -> dict
         "name": contract.name,
         "contract_number": contract.contract_number,
         "contract_type": contract.contract_type,
+        "contract_vorm": contract.contract_vorm,
         "category_id": contract.category_id,
         "category_name": (
             contract.category.inkooppakket if contract.category else None
@@ -99,6 +100,7 @@ def create_contract(
         name=data.name,
         contract_number=data.contract_number,
         contract_type=data.contract_type,
+        contract_vorm=data.contract_vorm,
         category_id=data.category_id,
         start_date=data.start_date,
         end_date=data.end_date,

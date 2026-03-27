@@ -9,6 +9,7 @@ class ContractCreate(BaseModel):
     name: str
     contract_number: Optional[str] = None
     contract_type: Optional[str] = None
+    contract_vorm: Optional[str] = None
     category_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -25,6 +26,7 @@ class ContractUpdate(BaseModel):
     name: Optional[str] = None
     contract_number: Optional[str] = None
     contract_type: Optional[str] = None
+    contract_vorm: Optional[str] = None
     category_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -45,6 +47,7 @@ class ContractResponse(BaseModel):
     name: str
     contract_number: Optional[str] = None
     contract_type: Optional[str] = None
+    contract_vorm: Optional[str] = None
     category_id: Optional[int] = None
     category_name: Optional[str] = None
     start_date: Optional[date] = None
