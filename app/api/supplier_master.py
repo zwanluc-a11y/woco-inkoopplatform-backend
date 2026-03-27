@@ -177,7 +177,7 @@ def delete_master_entry(
     return {"ok": True}
 
 
-@router.delete("")
+@router.post("/clear-all")
 def clear_master_db(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
