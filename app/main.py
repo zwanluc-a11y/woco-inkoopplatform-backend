@@ -130,10 +130,9 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
-    # Include error type in dev/debug, but not full stack trace
     return JSONResponse(
         status_code=500,
-        content={"detail": f"Interne serverfout: {type(exc).__name__}: {exc}"},
+        content={"detail": "Er is een interne serverfout opgetreden. Probeer het later opnieuw."},
     )
 
 
@@ -185,9 +184,9 @@ async def fix_https_redirects(request: Request, call_next):
         "default-src 'self'; frame-ancestors 'none'"
     )
     # Remove headers that leak technology info
-    response.headers.pop("server", None)
-    response.headers.pop("x-powered-by", None)
-    response.headers.pop("X-Powered-By", None)
+    for h in ("server", "x-powered-by", "X-Powered-By"):
+        if h in response.headers:
+            del response.headers[h]
     return response
 
 
