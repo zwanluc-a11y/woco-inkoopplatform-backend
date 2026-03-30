@@ -46,6 +46,7 @@ def _add_missing_columns() -> None:
         ("import_sessions", "progress_total", "INTEGER DEFAULT 0"),
         ("inkoop_categories", "classificatie", "VARCHAR(50)"),
         ("organizations", "corporatie_l_nummer", "VARCHAR(20)"),
+        ("organizations", "aantal_vhe", "INTEGER"),
         ("contracts", "contract_vorm", "VARCHAR(100)"),
     ]
     conn = engine.connect()
