@@ -139,7 +139,9 @@ class CategorizationService:
         ]
 
     # Confidence threshold for auto-accepting AI suggestions
-    AUTO_ACCEPT_THRESHOLD = 0.95
+    # Set to > 1.0 to effectively disable auto-accept: all AI results
+    # go to "ai_suggested" so the user can review before accepting.
+    AUTO_ACCEPT_THRESHOLD = 1.01
     # Max suppliers per single API call (to keep prompt size manageable)
     API_CALL_BATCH_SIZE = 50
 
