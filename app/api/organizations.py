@@ -135,14 +135,30 @@ def update_organization(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
+    from sqlalchemy import text
+    import logging
+    logger = logging.getLogger(__name__)
+
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
         raise HTTPException(status_code=404, detail="Organisatie niet gevonden")
     update_data = data.model_dump(exclude_unset=True)
+    logger.info("Update org %d: fields=%s", org_id, update_data)
+
+    # Use direct SQL for aantal_vhe to avoid SQLAlchemy mapper issues
+    if "aantal_vhe" in update_data:
+        vhe_val = update_data.pop("aantal_vhe")
+        db.execute(
+            text("UPDATE organizations SET aantal_vhe = :vhe WHERE id = :oid"),
+            {"vhe": vhe_val, "oid": org_id},
+        )
+        logger.info("Direct SQL: SET aantal_vhe=%s for org %d", vhe_val, org_id)
+
     for field, value in update_data.items():
         setattr(org, field, value)
     db.commit()
     db.refresh(org)
+    logger.info("After refresh: org.aantal_vhe=%s", org.aantal_vhe)
     return org
 
 
