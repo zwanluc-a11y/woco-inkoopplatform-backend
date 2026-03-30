@@ -54,11 +54,26 @@ def _add_missing_columns() -> None:
         try:
             existing = {c["name"] for c in inspector.get_columns(table)}
             if col not in existing:
+                logger.info("Adding missing column %s.%s (%s)...", table, col, col_type)
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
                 conn.commit()
-                logger.info("Added column %s.%s", table, col)
-        except Exception:
+                logger.info("Successfully added column %s.%s", table, col)
+            else:
+                logger.debug("Column %s.%s already exists", table, col)
+        except Exception as e:
+            logger.error("Failed to add column %s.%s: %s", table, col, e)
             conn.rollback()
+
+    # Double-check: try adding aantal_vhe via IF NOT EXISTS (PostgreSQL 9.6+)
+    try:
+        conn.execute(text(
+            "ALTER TABLE organizations ADD COLUMN IF NOT EXISTS aantal_vhe INTEGER"
+        ))
+        conn.commit()
+        logger.info("Ensured organizations.aantal_vhe column exists (IF NOT EXISTS)")
+    except Exception as e:
+        logger.error("IF NOT EXISTS fallback failed: %s", e)
+        conn.rollback()
 
     # Make category_id nullable in supplier_master_categories (was NOT NULL)
     try:
