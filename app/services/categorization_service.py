@@ -141,7 +141,7 @@ class CategorizationService:
     # Confidence threshold for auto-accepting AI suggestions
     AUTO_ACCEPT_THRESHOLD = 0.95
     # Max suppliers per single API call (to keep prompt size manageable)
-    API_CALL_BATCH_SIZE = 10
+    API_CALL_BATCH_SIZE = 50
 
     def get_uncategorized_counts(self, org_id: int) -> dict:
         """Get diagnostic counts for uncategorized suppliers."""
@@ -492,7 +492,7 @@ class CategorizationService:
         # of input tokens for the cached portion (~8K tokens saved per call).
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=4000,
+            max_tokens=16000,
             system=[
                 {
                     "type": "text",
