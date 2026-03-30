@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder
 from app.models.contract import Contract, ContractSupplier
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
@@ -31,6 +31,7 @@ def calculate_risk(
     request: CalculateRiskRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    _membership=Depends(verify_org_beheerder),
 ):
     """Run risk assessment for all categorized spend."""
     service = RiskService(db)
@@ -56,6 +57,7 @@ def get_latest_assessments(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    _membership=Depends(verify_org_membership),
 ):
     """Get the most recent risk assessments."""
     service = RiskService(db)
@@ -99,6 +101,7 @@ def get_risk_summary(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    _membership=Depends(verify_org_membership),
 ):
     """Get aggregated risk summary."""
     service = RiskService(db)
@@ -110,6 +113,7 @@ def get_available_years(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    _membership=Depends(verify_org_membership),
 ):
     """Get years with spend data available for risk analysis."""
     service = RiskService(db)
@@ -123,6 +127,7 @@ def get_contracts_for_category(
     category_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    _membership=Depends(verify_org_membership),
 ):
     """Get contracts linked to a specific PIANOo category (direct or via suppliers)."""
     from sqlalchemy import or_
@@ -179,6 +184,7 @@ def get_suppliers_for_category(
     year: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    _membership=Depends(verify_org_membership),
 ):
     """Get suppliers in a specific PIANOo category with their yearly spend."""
     query = (

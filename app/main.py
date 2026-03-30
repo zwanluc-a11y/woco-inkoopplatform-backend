@@ -1,7 +1,7 @@
 import logging
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -16,6 +16,8 @@ from app.services.seed_service import seed_inkoop_categories, seed_user_organiza
 import app.models  # noqa: F401
 
 from app.api import auth, organizations, categories, suppliers, imports, spend, categorization, risk, contracts, calendar, export, dashboard, settings, invitations, members, team, supplier_master, corporaties, referentie
+from app.api.deps import get_current_user
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +132,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
     return JSONResponse(
         status_code=500,
-        content={"detail": f"Interne serverfout: {type(exc).__name__}"},
+        content={"detail": "Er is een interne serverfout opgetreden. Probeer het later opnieuw."},
     )
 
 
@@ -147,8 +149,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_allow_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 
@@ -216,7 +218,12 @@ async def root():
 
 
 @app.get("/debug/seed-status")
-def seed_status():
+def seed_status(
+    current_user: User = Depends(get_current_user),
+):
+    """Seed status (platform eigenaar only)."""
+    if current_user.platform_role != "eigenaar":
+        raise HTTPException(status_code=403, detail="Alleen platform eigenaar")
     from sqlalchemy import text
     db = SessionLocal()
     try:
@@ -226,15 +233,19 @@ def seed_status():
                 row = db.execute(text(f"SELECT count(*) FROM {table}")).scalar()
                 counts[table] = row
             except Exception as e:
-                counts[table] = str(e)
+                counts[table] = "error"
         return counts
     finally:
         db.close()
 
 
 @app.post("/debug/reseed")
-def reseed():
-    import traceback
+def reseed(
+    current_user: User = Depends(get_current_user),
+):
+    """Reseed data (platform eigenaar only)."""
+    if current_user.platform_role != "eigenaar":
+        raise HTTPException(status_code=403, detail="Alleen platform eigenaar")
     db = SessionLocal()
     results = {}
     try:
@@ -243,7 +254,7 @@ def reseed():
                 seed_fn(db)
                 results[seed_fn.__name__] = "ok"
             except Exception as e:
-                results[seed_fn.__name__] = f"ERROR: {e}\n{traceback.format_exc()}"
+                results[seed_fn.__name__] = f"ERROR: {type(e).__name__}"
                 db.rollback()
     finally:
         db.close()

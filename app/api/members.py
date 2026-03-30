@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_eigenaar
 from app.models.user import User
 from app.models.user_organization import UserOrganization
 
@@ -24,6 +24,7 @@ def list_members(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     """List all members of the organization.
 
@@ -83,6 +84,7 @@ def update_member_role(
     data: UpdateRoleRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_eigenaar),
 ):
     """Change a member's role (eigenaar-only)."""
     # Block changes to platform users
@@ -137,6 +139,7 @@ def remove_member(
     user_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_eigenaar),
 ):
     """Remove a member from the organization (eigenaar-only)."""
     # Block removal of platform users

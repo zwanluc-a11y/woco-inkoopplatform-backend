@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
 from app.models.supplier_yearly_spend import SupplierYearlySpend
@@ -57,6 +57,7 @@ def list_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
     search: Optional[str] = None,
     uncategorized: bool = False,
     sort_by: str = "name",
@@ -93,6 +94,7 @@ def get_supplier(
     supplier_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     supplier = (
         db.query(Supplier)
@@ -110,6 +112,7 @@ def get_supplier_transactions(
     supplier_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
     year: Optional[int] = None,
 ):
     query = db.query(Transaction).filter(
@@ -128,6 +131,7 @@ def set_supplier_category(
     data: CategorizationRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     supplier = (
         db.query(Supplier)
@@ -175,6 +179,7 @@ def bulk_categorize(
     data: BulkCategorizationRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     results = []
     for item in data.categorizations:

@@ -9,7 +9,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder, verify_org_eigenaar
 from app.models.user_organization import UserOrganization
 from app.models.category_duration_setting import CategoryDurationSetting
 from app.models.contract import Contract
@@ -121,6 +121,7 @@ def get_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -134,6 +135,7 @@ def update_organization(
     data: OrganizationUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     from sqlalchemy import text
     import logging
@@ -167,6 +169,7 @@ def get_thresholds(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     return db.query(Threshold).filter(Threshold.organization_id == org_id).all()
 
@@ -178,6 +181,7 @@ def update_threshold(
     data: ThresholdUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     threshold = (
         db.query(Threshold)
@@ -198,6 +202,7 @@ def delete_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_eigenaar),
 ):
     """Delete an organization and ALL related data (cascade)."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -269,6 +274,7 @@ def upload_brand_logo(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     """Upload an organization logo (shown in PDF report). No color extraction."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -295,6 +301,7 @@ def upload_brand_screenshot(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     """Upload a website screenshot to extract brand colors."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -334,6 +341,7 @@ def upload_brand_legacy(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     """Legacy: upload image as logo + extract colors. Use /brand/logo or /brand/screenshot instead."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -371,6 +379,7 @@ def update_brand_colors(
     data: BrandColorsUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     """Manually update brand colors."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -388,6 +397,7 @@ def get_brand_info(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     """Get brand logo, screenshot and colors for an organization."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -434,6 +444,7 @@ def get_brand_image(
     image_type: Literal["logo", "screenshot"],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     """Serve a brand image (logo or screenshot) directly from DB or disk."""
 

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder
 from app.models.contract import Contract, ContractSupplier
 from app.models.supplier import Supplier
 from app.models.supplier_yearly_spend import SupplierYearlySpend
@@ -75,6 +75,7 @@ def list_contracts(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
     status: Optional[str] = None,
     search: Optional[str] = None,
 ):
@@ -94,6 +95,7 @@ def create_contract(
     data: ContractCreate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     contract = Contract(
         organization_id=org_id,
@@ -143,6 +145,7 @@ def get_contract(
     contract_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     contract = (
         db.query(Contract)
@@ -161,6 +164,7 @@ def update_contract(
     data: ContractUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     contract = (
         db.query(Contract)
@@ -208,6 +212,7 @@ def delete_contract(
     contract_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     contract = (
         db.query(Contract)
@@ -230,6 +235,7 @@ def contract_stats(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_membership),
 ):
     """Get summary statistics for contracts."""
     today = date.today()
@@ -261,6 +267,7 @@ def match_contract_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    _membership=Depends(verify_org_beheerder),
 ):
     """Retroactively fuzzy-match contract suppliers to spend suppliers.
 
