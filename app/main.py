@@ -175,6 +175,16 @@ async def fix_https_redirects(request: Request, call_next):
     response.headers["Permissions-Policy"] = (
         "camera=(), microphone=(), geolocation=(), payment=()"
     )
+    response.headers["Strict-Transport-Security"] = (
+        "max-age=31536000; includeSubDomains; preload"
+    )
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; frame-ancestors 'none'"
+    )
+    # Remove headers that leak technology info
+    response.headers.pop("server", None)
+    response.headers.pop("x-powered-by", None)
+    response.headers.pop("X-Powered-By", None)
     return response
 
 
