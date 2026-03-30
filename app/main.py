@@ -130,9 +130,10 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
+    # Include error type in dev/debug, but not full stack trace
     return JSONResponse(
         status_code=500,
-        content={"detail": "Er is een interne serverfout opgetreden. Probeer het later opnieuw."},
+        content={"detail": f"Interne serverfout: {type(exc).__name__}: {exc}"},
     )
 
 
