@@ -37,12 +37,14 @@ class OrganizationCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     org_type: VALID_ORG_TYPES
     description: Optional[str] = Field(None, max_length=2000)
+    aantal_vhe: Optional[int] = Field(None, ge=1, description="Aantal verhuureenheden")
 
 
 class OrganizationUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     org_type: Optional[VALID_ORG_TYPES] = None
     description: Optional[str] = Field(None, max_length=2000)
+    aantal_vhe: Optional[int] = Field(None, ge=1, description="Aantal verhuureenheden")
 
 
 class OrganizationResponse(BaseModel):
@@ -52,6 +54,7 @@ class OrganizationResponse(BaseModel):
     name: str
     org_type: str
     description: Optional[str] = None
+    aantal_vhe: Optional[int] = None
     created_by: int
     created_at: datetime
     updated_at: datetime

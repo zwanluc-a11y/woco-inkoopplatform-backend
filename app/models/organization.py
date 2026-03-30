@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, deferred, mapped_column, relationship
 from typing import Optional
+from decimal import Decimal
 from app.database import Base
 
 class Organization(Base):
@@ -12,6 +13,7 @@ class Organization(Base):
     org_type: Mapped[str] = mapped_column(String(50))  # woningcorporatie_klein, _middel, _groot, overig
     category_system: Mapped[str] = mapped_column(String(20), default="aedes")  # aedes, bu_woco
     corporatie_l_nummer: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    aantal_vhe: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Verhuureenheden
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
