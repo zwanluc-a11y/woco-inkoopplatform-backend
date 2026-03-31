@@ -128,6 +128,24 @@ def _fetch_clerk_user_info(clerk_id: str) -> dict:
     return info
 
 
+def _check_domain_whitelist(email: str, db: Session) -> Optional[str]:
+    """Check if the email domain is on the auto-access whitelist.
+
+    Returns the auto-access platform role if matched, None otherwise.
+    """
+    if not email or "@" not in email:
+        return None
+    domain = email.rsplit("@", 1)[1].lower()
+    try:
+        from app.api.settings import get_auto_access_domains, get_auto_access_role
+        allowed = get_auto_access_domains(db)
+        if domain in allowed:
+            return get_auto_access_role(db)
+    except Exception as e:
+        logger.warning("Domain whitelist check failed: %s", e)
+    return None
+
+
 def _resolve_user(payload: dict, db: Session) -> User:
     clerk_id = payload.get("sub")
     if not clerk_id:
@@ -150,6 +168,15 @@ def _resolve_user(payload: dict, db: Session) -> User:
                 if display:
                     user.name = display
                     needs_update = True
+
+        # Auto-assign platform role from domain whitelist if user has none
+        if not user.platform_role and user.email:
+            auto_role = _check_domain_whitelist(user.email, db)
+            if auto_role:
+                user.platform_role = auto_role
+                needs_update = True
+                logger.info("Auto-assigned platform_role '%s' to %s via domain whitelist", auto_role, user.email)
+
         if needs_update:
             db.commit()
             db.refresh(user)
@@ -176,6 +203,12 @@ def _resolve_user(payload: dict, db: Session) -> User:
         user = db.query(User).filter(User.email == email).first()
         if user:
             user.clerk_id = clerk_id
+            # Auto-assign platform role from domain whitelist
+            if not user.platform_role:
+                auto_role = _check_domain_whitelist(email, db)
+                if auto_role:
+                    user.platform_role = auto_role
+                    logger.info("Auto-assigned platform_role '%s' to %s via domain whitelist", auto_role, email)
             db.commit()
             db.refresh(user)
             return user
@@ -187,8 +220,16 @@ def _resolve_user(payload: dict, db: Session) -> User:
         User.clerk_id.isnot(None),
         User.clerk_id != "",
     ).first()
-    initial_role = "eigenaar" if not existing_owner else None
+
+    # Determine initial role: first user = eigenaar, whitelist match = auto role, else None
+    if not existing_owner:
+        initial_role = "eigenaar"
+    else:
+        initial_role = _check_domain_whitelist(email, db) if email else None
+
     user = User(clerk_id=clerk_id, email=email, name=name, platform_role=initial_role)
+    if initial_role:
+        logger.info("New user %s gets platform_role '%s' (domain whitelist)" if initial_role != "eigenaar" else "New user %s gets platform_role '%s' (first user)", email, initial_role)
     db.add(user)
     db.commit()
     db.refresh(user)

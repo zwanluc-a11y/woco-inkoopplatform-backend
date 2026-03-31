@@ -100,3 +100,109 @@ def update_clerk_key(data: ApiKeyUpdate, user: User = Depends(verify_platform_ei
     set_setting(db, "CLERK_SECRET_KEY", new_key)
     settings.CLERK_SECRET_KEY = new_key
     return {"success": True, "masked_key": _mask_key(new_key), "message": "Clerk key opgeslagen."}
+
+
+# ---------------------------------------------------------------------------
+# Domain-based auto-access whitelist
+# ---------------------------------------------------------------------------
+import json as _json
+import re as _re
+
+_DOMAIN_RE = _re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$")
+VALID_AUTO_ACCESS_ROLES = ("beheerder", "eigenaar")
+
+
+class AutoAccessDomainsResponse(BaseModel):
+    domains: list[str]
+    default_role: str
+
+
+class AutoAccessDomainsUpdate(BaseModel):
+    domains: list[str]
+    default_role: str = "beheerder"
+
+
+def get_auto_access_domains(db: Session) -> list[str]:
+    """Return the list of whitelisted email domains."""
+    raw = get_setting(db, "AUTO_ACCESS_DOMAINS")
+    if not raw:
+        return []
+    try:
+        domains = _json.loads(raw)
+        return [d.lower().strip() for d in domains if d.strip()]
+    except (ValueError, TypeError):
+        return []
+
+
+def get_auto_access_role(db: Session) -> str:
+    """Return the default platform role for auto-access users."""
+    role = get_setting(db, "AUTO_ACCESS_ROLE")
+    return role if role in VALID_AUTO_ACCESS_ROLES else "beheerder"
+
+
+@router.get("/auto-access-domains", response_model=AutoAccessDomainsResponse)
+def get_domains(
+    user: User = Depends(verify_platform_eigenaar),
+    db: Session = Depends(get_db),
+):
+    return AutoAccessDomainsResponse(
+        domains=get_auto_access_domains(db),
+        default_role=get_auto_access_role(db),
+    )
+
+
+@router.put("/auto-access-domains", response_model=AutoAccessDomainsResponse)
+def update_domains(
+    data: AutoAccessDomainsUpdate,
+    user: User = Depends(verify_platform_eigenaar),
+    db: Session = Depends(get_db),
+):
+    if data.default_role not in VALID_AUTO_ACCESS_ROLES:
+        return {"error": f"Rol moet een van {VALID_AUTO_ACCESS_ROLES} zijn"}
+
+    # Validate and normalize domains
+    clean: list[str] = []
+    for d in data.domains:
+        d = d.lower().strip().lstrip("@")
+        if not d:
+            continue
+        if not _DOMAIN_RE.match(d):
+            return {"error": f"Ongeldig domein: {d}"}
+        clean.append(d)
+
+    # Remove duplicates, keep order
+    seen: set[str] = set()
+    unique: list[str] = []
+    for d in clean:
+        if d not in seen:
+            seen.add(d)
+            unique.append(d)
+
+    set_setting(db, "AUTO_ACCESS_DOMAINS", _json.dumps(unique))
+    set_setting(db, "AUTO_ACCESS_ROLE", data.default_role)
+
+    # Auto-upgrade existing users whose email domain matches a newly added domain
+    if unique:
+        upgraded = _upgrade_existing_users(db, unique, data.default_role)
+        return AutoAccessDomainsResponse(domains=unique, default_role=data.default_role)
+
+    return AutoAccessDomainsResponse(domains=unique, default_role=data.default_role)
+
+
+def _upgrade_existing_users(db: Session, domains: list[str], role: str) -> int:
+    """Set platform_role for existing users without one whose email matches a whitelisted domain."""
+    from app.models.user import User as _User
+    users_without_role = db.query(_User).filter(
+        _User.platform_role.is_(None),
+        _User.email.isnot(None),
+    ).all()
+    count = 0
+    for u in users_without_role:
+        if u.email and "@" in u.email:
+            domain = u.email.rsplit("@", 1)[1].lower()
+            if domain in domains:
+                u.platform_role = role
+                count += 1
+    if count:
+        db.commit()
+    return count
