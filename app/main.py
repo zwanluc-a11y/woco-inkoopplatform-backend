@@ -1,7 +1,7 @@
 import logging
 
 from contextlib import asynccontextmanager
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -16,8 +16,6 @@ from app.services.seed_service import seed_inkoop_categories, seed_user_organiza
 import app.models  # noqa: F401
 
 from app.api import auth, organizations, categories, suppliers, imports, spend, categorization, risk, contracts, calendar, export, dashboard, settings, invitations, members, team, supplier_master, corporaties, referentie
-from app.api.deps import get_current_user
-from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -131,10 +129,10 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
-    detail = f"{type(exc).__name__}: {exc}"
+    # Never expose internal error details to clients
     return JSONResponse(
         status_code=500,
-        content={"detail": detail},
+        content={"detail": "Er is een interne serverfout opgetreden."},
     )
 
 
@@ -219,41 +217,4 @@ async def root():
     return {"message": "WoCo Inkoopplatform API is running"}
 
 
-@app.get("/debug/seed-status")
-def seed_status(
-    current_user: User = Depends(get_current_user),
-):
-    """Seed status (any authenticated user)."""
-    from sqlalchemy import text
-    db = SessionLocal()
-    try:
-        counts = {}
-        for table in ["woningcorporaties", "inkoop_categories", "supplier_master_categories", "users", "organizations"]:
-            try:
-                row = db.execute(text(f"SELECT count(*) FROM {table}")).scalar()
-                counts[table] = row
-            except Exception as e:
-                counts[table] = "error"
-        return counts
-    finally:
-        db.close()
-
-
-@app.post("/debug/reseed")
-def reseed(
-    current_user: User = Depends(get_current_user),
-):
-    """Reseed data (any authenticated user)."""
-    db = SessionLocal()
-    results = {}
-    try:
-        for seed_fn in [seed_woningcorporaties, seed_inkoop_categories, seed_leveranciers]:
-            try:
-                seed_fn(db)
-                results[seed_fn.__name__] = "ok"
-            except Exception as e:
-                results[seed_fn.__name__] = f"ERROR: {type(e).__name__}"
-                db.rollback()
-    finally:
-        db.close()
-    return results
+# Debug endpoints removed for production security
