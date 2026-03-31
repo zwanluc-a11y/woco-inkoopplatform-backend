@@ -1057,20 +1057,14 @@ class ImportService:
                             self.db.flush()
                             existing_suppliers[norm] = supplier
 
-                        # Check if link exists
-                        link = (
-                            self.db.query(ContractSupplier)
-                            .filter(
-                                ContractSupplier.contract_id == contract.id,
-                                ContractSupplier.supplier_id == supplier.id,
-                            )
-                            .first()
-                        )
-                        if not link:
-                            self.db.add(ContractSupplier(
-                                contract_id=contract.id,
-                                supplier_id=supplier.id,
-                            ))
+                        # 1 leverancier per contract — vervang bestaande link
+                        self.db.query(ContractSupplier).filter(
+                            ContractSupplier.contract_id == contract.id,
+                        ).delete()
+                        self.db.add(ContractSupplier(
+                            contract_id=contract.id,
+                            supplier_id=supplier.id,
+                        ))
 
         self.db.commit()
         logger.info(
