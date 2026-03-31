@@ -23,7 +23,8 @@ class Contract(Base):
     )  # Individueel, Samenwerking, etc.
     start_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     end_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
-    extension_options: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    extension_options: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # legacy
+    auto_renewal: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     max_end_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     estimated_value: Mapped[Optional[float]] = mapped_column(Numeric(14, 2), nullable=True)
     is_ingekocht_via_procedure: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -84,8 +84,10 @@ CONTRACT_COLUMN_PATTERNS: dict[str, list[str]] = {
         "einddatum", "eind datum", "expiratiedatum", "vervaldatum",
         "end date", "afloop", "einddatum contract",
     ],
-    "extension_options": [
-        "verlengingsoptie", "verlenging", "verlengingsopties", "optie",
+    "auto_renewal": [
+        "automatische verlenging", "auto verlenging", "stilzwijgend",
+        "stilzwijgende verlenging", "auto renewal", "automatic renewal",
+        "verlengingsoptie", "verlenging", "verlengingsopties",
         "extension", "verlengingsmogelijkheid",
     ],
     "max_end_date": [
@@ -832,7 +834,7 @@ class ImportService:
         type_col = mapping.get("contract_type")
         start_col = mapping.get("start_date")
         end_col = mapping.get("end_date")
-        ext_col = mapping.get("extension_options")
+        ext_col = mapping.get("auto_renewal")
         max_end_col = mapping.get("max_end_date")
         value_col = mapping.get("estimated_value")
         aanbesteed_col = mapping.get("is_ingekocht_via_procedure")
@@ -920,11 +922,9 @@ class ImportService:
                 except Exception:
                     pass
 
-            extension_options = None
+            auto_renewal = False
             if ext_col:
-                raw = row.get(ext_col)
-                if pd.notna(raw):
-                    extension_options = str(raw).strip()
+                auto_renewal = _parse_boolean(row.get(ext_col))
 
             max_end_date = None
             if max_end_col:
@@ -987,7 +987,7 @@ class ImportService:
                 existing.contract_type = contract_type
                 existing.start_date = start_date
                 existing.end_date = end_date
-                existing.extension_options = extension_options
+                existing.auto_renewal = auto_renewal
                 existing.max_end_date = max_end_date
                 existing.estimated_value = estimated_value
                 existing.is_ingekocht_via_procedure = is_ingekocht_via_procedure
@@ -1005,7 +1005,7 @@ class ImportService:
                     contract_type=contract_type,
                     start_date=start_date,
                     end_date=end_date,
-                    extension_options=extension_options,
+                    auto_renewal=auto_renewal,
                     max_end_date=max_end_date,
                     estimated_value=estimated_value,
                     is_ingekocht_via_procedure=is_ingekocht_via_procedure,

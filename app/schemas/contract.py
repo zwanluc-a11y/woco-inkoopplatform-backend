@@ -13,7 +13,7 @@ class ContractCreate(BaseModel):
     category_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-    extension_options: Optional[str] = None
+    auto_renewal: bool = False
     max_end_date: Optional[date] = None
     estimated_value: Optional[float] = None
     is_ingekocht_via_procedure: bool = False
@@ -30,7 +30,7 @@ class ContractUpdate(BaseModel):
     category_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-    extension_options: Optional[str] = None
+    auto_renewal: Optional[bool] = None
     max_end_date: Optional[date] = None
     estimated_value: Optional[float] = None
     is_ingekocht_via_procedure: Optional[bool] = None
@@ -52,7 +52,7 @@ class ContractResponse(BaseModel):
     category_name: Optional[str] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-    extension_options: Optional[str] = None
+    auto_renewal: bool = False
     max_end_date: Optional[date] = None
     estimated_value: Optional[float] = None
     is_ingekocht_via_procedure: bool

@@ -49,6 +49,7 @@ def _add_missing_columns() -> None:
         ("organizations", "aantal_vhe", "INTEGER"),
         ("contracts", "contract_vorm", "VARCHAR(100)"),
         ("thresholds", "advies_diensten", "NUMERIC(12,2) DEFAULT 0"),
+        ("contracts", "auto_renewal", "BOOLEAN DEFAULT FALSE"),
     ]
     conn = engine.connect()
     for table, col, col_type in columns_to_add:

@@ -151,8 +151,8 @@ class CalendarService:
                 f"Contract: {contract.name}",
                 f"Einddatum: {contract.end_date.isoformat()}",
             ]
-            if contract.extension_options:
-                desc_parts.append(f"Verlengingsopties: {contract.extension_options}")
+            if contract.auto_renewal:
+                desc_parts.append("Automatische verlenging: Ja")
             if contract.max_end_date:
                 desc_parts.append(f"Maximale einddatum: {contract.max_end_date.isoformat()}")
             if contract.estimated_value:
