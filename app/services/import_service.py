@@ -881,13 +881,16 @@ class ImportService:
                     if contract_number.lower() == "nan":
                         contract_number = None
 
-            # Fallback name: use contract number, then row index
+            # Fallback name: use contract number, then supplier, then row number
             if not name:
                 if contract_number:
                     name = f"Contract {contract_number}"
-                else:
-                    # Skip rows with neither name nor number
-                    continue
+                elif supplier_col:
+                    raw_sup = row.get(supplier_col)
+                    if pd.notna(raw_sup) and str(raw_sup).strip() and str(raw_sup).strip() != "nan":
+                        name = f"Contract {str(raw_sup).strip()}"
+                if not name:
+                    name = f"Contract {created + updated + 1}"
 
             # Check for existing contract (dedup on contract_number)
             existing = None
