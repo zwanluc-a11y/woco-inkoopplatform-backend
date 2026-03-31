@@ -828,9 +828,6 @@ class ImportService:
     ) -> None:
         """Process a contract register import."""
         name_col = mapping.get("name")
-        if not name_col:
-            raise ValueError("Contractnaam kolom is verplicht")
-
         number_col = mapping.get("contract_number")
         type_col = mapping.get("contract_type")
         start_col = mapping.get("start_date")
@@ -868,17 +865,29 @@ class ImportService:
         created = 0
         updated = 0
 
-        for _, row in df.iterrows():
-            name = str(row.get(name_col, "")).strip()
-            if not name or name == "nan":
-                continue
+        for idx, row in df.iterrows():
+            name = ""
+            if name_col:
+                name = str(row.get(name_col, "")).strip()
+                if name == "nan":
+                    name = ""
 
-            # Parse contract number for deduplication
+            # Parse contract number early — needed for fallback name
             contract_number = None
             if number_col:
                 raw = row.get(number_col)
                 if pd.notna(raw):
                     contract_number = str(raw).strip()
+                    if contract_number.lower() == "nan":
+                        contract_number = None
+
+            # Fallback name: use contract number, then row index
+            if not name:
+                if contract_number:
+                    name = f"Contract {contract_number}"
+                else:
+                    # Skip rows with neither name nor number
+                    continue
 
             # Check for existing contract (dedup on contract_number)
             existing = None
