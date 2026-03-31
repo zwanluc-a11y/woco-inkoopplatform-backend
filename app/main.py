@@ -119,11 +119,29 @@ async def strip_trailing_slash(request: Request, call_next):
 app.state.limiter = limiter
 
 
+def _cors_headers(request: Request) -> dict[str, str]:
+    """Build CORS headers to include on error responses.
+
+    When an exception is raised, CORSMiddleware may not always
+    attach the Access-Control-Allow-* headers.  Including them
+    manually ensures browsers can still read the error body
+    instead of showing an opaque "Failed to fetch".
+    """
+    origin = request.headers.get("origin", "")
+    if origin and origin in _allow_origins:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        }
+    return {}
+
+
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
         status_code=429,
         content={"detail": "Te veel verzoeken. Probeer het later opnieuw."},
+        headers=_cors_headers(request),
     )
 
 
@@ -133,6 +151,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": "Er is een interne serverfout opgetreden. Probeer het later opnieuw."},
+        headers=_cors_headers(request),
     )
 
 
@@ -160,7 +179,20 @@ app.add_middleware(
 # Location headers to https:// when X-Forwarded-Proto indicates HTTPS.
 @app.middleware("http")
 async def fix_https_redirects(request: Request, call_next):
-    response: Response = await call_next(request)
+    try:
+        response: Response = await call_next(request)
+    except Exception as exc:
+        logger.exception("Middleware caught unhandled error on %s %s", request.method, request.url.path)
+        response = JSONResponse(
+            status_code=500,
+            content={"detail": "Er is een interne serverfout opgetreden."},
+        )
+        # Ensure CORS headers so the browser can read the error
+        origin = request.headers.get("origin", "")
+        if origin and origin in _allow_origins:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
     if (
         response.status_code in (301, 302, 307, 308)
         and "location" in response.headers

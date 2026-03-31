@@ -59,17 +59,25 @@ def list_organizations(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
+    import logging as _logging
+    _log = _logging.getLogger(__name__)
+    _log.info("list_organizations called by user %s (id=%s, role=%s)", current_user.email, current_user.id, current_user.platform_role)
+
     # Platform users see all organizations
     if current_user.platform_role in ("eigenaar", "beheerder"):
-        return db.query(Organization).order_by(Organization.name).all()
+        orgs = db.query(Organization).order_by(Organization.name).all()
+        _log.info("Returning %d orgs for platform user", len(orgs))
+        return orgs
 
     # Regular users see only their memberships
-    return (
+    orgs = (
         db.query(Organization)
         .join(UserOrganization, UserOrganization.organization_id == Organization.id)
         .filter(UserOrganization.user_id == current_user.id)
         .all()
     )
+    _log.info("Returning %d orgs for regular user", len(orgs))
+    return orgs
 
 
 @router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
