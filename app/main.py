@@ -236,7 +236,7 @@ app.include_router(referentie.router, prefix="/api")
 
 @app.get("/")
 async def root():
-    return {"message": "WoCo Inkoopplatform API is running"}
+    return {"message": "WoCo Inkoopplatform API is running", "version": "2024-debug-5"}
 
 
 @app.get("/debug/seed-status")
