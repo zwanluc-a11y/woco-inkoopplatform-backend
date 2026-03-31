@@ -264,6 +264,134 @@ def spend_pivot_by_category(
     }
 
 
+@router.get("/insights")
+def spend_insights(
+    org_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    search: Optional[str] = None,
+    sort_by: str = Query("total_spend", regex="^(total_spend|avg_invoice|transaction_count|name)$"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(100, ge=1, le=1000),
+):
+    """Detailed transaction insights per supplier per year: avg invoice value, transaction counts, etc."""
+    query = db.query(Supplier).filter(Supplier.organization_id == org_id)
+    if search:
+        safe_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        query = query.filter(Supplier.name.ilike(f"%{safe_search}%", escape="\\"))
+
+    suppliers = query.all()
+
+    # Collect all years
+    all_years: set[int] = set()
+    rows = []
+    # Aggregated totals per year (for summary cards)
+    year_agg: dict[int, dict] = defaultdict(lambda: {
+        "total_spend": 0.0,
+        "transaction_count": 0,
+        "supplier_count": 0,
+    })
+
+    for s in suppliers:
+        yearly: dict[str, dict] = {}
+        total_spend = 0.0
+        total_transactions = 0
+        for ys in s.yearly_spends:
+            yr = ys.year
+            all_years.add(yr)
+            amt = float(ys.total_amount)
+            tc = ys.transaction_count or 0
+            avg = amt / tc if tc > 0 else 0.0
+            yearly[str(yr)] = {
+                "spend": amt,
+                "transaction_count": tc,
+                "avg_invoice": round(avg, 2),
+            }
+            total_spend += amt
+            total_transactions += tc
+            year_agg[yr]["total_spend"] += amt
+            year_agg[yr]["transaction_count"] += tc
+            year_agg[yr]["supplier_count"] += 1
+
+        if total_transactions == 0 and total_spend == 0:
+            continue
+
+        overall_avg = total_spend / total_transactions if total_transactions > 0 else 0.0
+
+        # Category info
+        cats = s.categorizations or []
+        primary = max(cats, key=lambda c: c.percentage, default=None) if cats else None
+
+        rows.append({
+            "id": s.id,
+            "name": s.name,
+            "supplier_code": s.supplier_code,
+            "category_name": primary.category.inkooppakket if primary and primary.category else None,
+            "is_beinvloedbaar": s.is_beinvloedbaar,
+            "yearly": yearly,
+            "total_spend": total_spend,
+            "total_transactions": total_transactions,
+            "avg_invoice": round(overall_avg, 2),
+        })
+
+    # Sort
+    sort_map = {
+        "total_spend": lambda x: abs(x["total_spend"]),
+        "avg_invoice": lambda x: abs(x["avg_invoice"]),
+        "transaction_count": lambda x: x["total_transactions"],
+        "name": lambda x: x["name"].lower(),
+    }
+    rows.sort(key=sort_map.get(sort_by, sort_map["total_spend"]), reverse=(sort_by != "name"))
+
+    # Summary per year
+    years_sorted = sorted(all_years)
+    year_summaries = []
+    for yr in years_sorted:
+        agg = year_agg[yr]
+        avg = agg["total_spend"] / agg["transaction_count"] if agg["transaction_count"] > 0 else 0.0
+        year_summaries.append({
+            "year": yr,
+            "total_spend": round(agg["total_spend"], 2),
+            "transaction_count": agg["transaction_count"],
+            "supplier_count": agg["supplier_count"],
+            "avg_invoice": round(avg, 2),
+        })
+
+    # Overall totals
+    grand_spend = sum(r["total_spend"] for r in rows)
+    grand_transactions = sum(r["total_transactions"] for r in rows)
+    grand_avg = grand_spend / grand_transactions if grand_transactions > 0 else 0.0
+
+    # Paginate
+    total_count = len(rows)
+    offset = (page - 1) * page_size
+    paged_rows = rows[offset:offset + page_size]
+
+    # Top 5 highest avg invoice (min 3 transactions to be meaningful)
+    meaningful = [r for r in rows if r["total_transactions"] >= 3]
+    meaningful.sort(key=lambda x: x["avg_invoice"], reverse=True)
+    top_avg = meaningful[:5]
+
+    # Top 5 most transactions
+    most_transactions = sorted(rows, key=lambda x: x["total_transactions"], reverse=True)[:5]
+
+    return {
+        "total_count": total_count,
+        "page": page,
+        "page_size": page_size,
+        "suppliers": paged_rows,
+        "year_summaries": year_summaries,
+        "totals": {
+            "total_spend": round(grand_spend, 2),
+            "total_transactions": grand_transactions,
+            "avg_invoice": round(grand_avg, 2),
+            "supplier_count": total_count,
+        },
+        "top_avg_invoice": top_avg,
+        "top_transactions": most_transactions,
+    }
+
+
 @router.get("/by-category")
 def spend_by_category(
     org_id: int,
