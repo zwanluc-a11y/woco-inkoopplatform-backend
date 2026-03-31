@@ -115,6 +115,7 @@ VALID_AUTO_ACCESS_ROLES = ("beheerder", "eigenaar")
 class AutoAccessDomainsResponse(BaseModel):
     domains: list[str]
     default_role: str
+    upgraded_users: int = 0
 
 
 class AutoAccessDomainsUpdate(BaseModel):
@@ -182,11 +183,9 @@ def update_domains(
     set_setting(db, "AUTO_ACCESS_ROLE", data.default_role)
 
     # Auto-upgrade existing users whose email domain matches a newly added domain
-    if unique:
-        upgraded = _upgrade_existing_users(db, unique, data.default_role)
-        return AutoAccessDomainsResponse(domains=unique, default_role=data.default_role)
+    upgraded = _upgrade_existing_users(db, unique, data.default_role) if unique else 0
 
-    return AutoAccessDomainsResponse(domains=unique, default_role=data.default_role)
+    return AutoAccessDomainsResponse(domains=unique, default_role=data.default_role, upgraded_users=upgraded)
 
 
 def _upgrade_existing_users(db: Session, domains: list[str], role: str) -> int:
