@@ -54,30 +54,77 @@ DEFAULT_THRESHOLDS = {
 }
 
 
-@router.get("", response_model=list[OrganizationResponse])
+@router.get("")
 def list_organizations(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
     import logging as _logging
+    import traceback as _tb
     _log = _logging.getLogger(__name__)
     _log.info("list_organizations called by user %s (id=%s, role=%s)", current_user.email, current_user.id, current_user.platform_role)
 
-    # Platform users see all organizations
-    if current_user.platform_role in ("eigenaar", "beheerder"):
-        orgs = db.query(Organization).order_by(Organization.name).all()
-        _log.info("Returning %d orgs for platform user", len(orgs))
-        return orgs
+    try:
+        # Platform users see all organizations
+        if current_user.platform_role in ("eigenaar", "beheerder"):
+            orgs = db.query(Organization).order_by(Organization.name).all()
+        else:
+            # Regular users see only their memberships
+            orgs = (
+                db.query(Organization)
+                .join(UserOrganization, UserOrganization.organization_id == Organization.id)
+                .filter(UserOrganization.user_id == current_user.id)
+                .all()
+            )
 
-    # Regular users see only their memberships
-    orgs = (
-        db.query(Organization)
-        .join(UserOrganization, UserOrganization.organization_id == Organization.id)
-        .filter(UserOrganization.user_id == current_user.id)
-        .all()
-    )
-    _log.info("Returning %d orgs for regular user", len(orgs))
-    return orgs
+        _log.info("Found %d orgs, serializing...", len(orgs))
+
+        # Manual serialization to catch field-level errors
+        result = []
+        for org in orgs:
+            try:
+                result.append({
+                    "id": org.id,
+                    "name": org.name,
+                    "org_type": org.org_type,
+                    "description": org.description,
+                    "aantal_vhe": org.aantal_vhe,
+                    "created_by": org.created_by,
+                    "created_at": org.created_at.isoformat() if org.created_at else None,
+                    "updated_at": org.updated_at.isoformat() if org.updated_at else None,
+                    "thresholds": [
+                        {
+                            "id": t.id,
+                            "organization_id": t.organization_id,
+                            "threshold_period": t.threshold_period,
+                            "diensten_leveringen": float(t.diensten_leveringen or 0),
+                            "werken": float(t.werken or 0),
+                            "ict_diensten": float(t.ict_diensten or 0),
+                            "advies_diensten": float(t.advies_diensten or 0),
+                            "is_default": t.is_default,
+                            "created_at": t.created_at.isoformat() if t.created_at else None,
+                            "updated_at": t.updated_at.isoformat() if t.updated_at else None,
+                        }
+                        for t in (org.thresholds or [])
+                    ],
+                })
+            except Exception as e:
+                _log.error("Failed to serialize org %s (id=%s): %s", org.name, org.id, e)
+                _log.error(_tb.format_exc())
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Serialisatiefout bij org '{org.name}' (id={org.id}): {type(e).__name__}: {e}",
+                )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        _log.error("list_organizations failed: %s", e)
+        _log.error(_tb.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Fout bij ophalen organisaties: {type(e).__name__}: {e}",
+        )
 
 
 @router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
