@@ -171,7 +171,7 @@ def _resolve_user(payload: dict, db: Session) -> User:
     if not display_name and email:
         display_name = email.split("@")[0]
 
-    # Check by email
+    # Check by email (only if we actually have one)
     if email:
         user = db.query(User).filter(User.email == email).first()
         if user:
@@ -180,11 +180,26 @@ def _resolve_user(payload: dict, db: Session) -> User:
             db.refresh(user)
             return user
 
-    # Create new user (no role assignment)
+    # Create new user — use clerk_id as fallback email to satisfy UNIQUE constraint
+    if not email:
+        email = f"{clerk_id}@clerk.placeholder"
     name = display_name or "Gebruiker"
     user = User(clerk_id=clerk_id, email=email, name=name, platform_role=None)
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        # Might be a duplicate — try to find by clerk_id or email again
+        user = db.query(User).filter(
+            (User.clerk_id == clerk_id) | (User.email == email)
+        ).first()
+        if user:
+            if not user.clerk_id:
+                user.clerk_id = clerk_id
+                db.commit()
+            return user
+        raise
     db.refresh(user)
     return user
 
