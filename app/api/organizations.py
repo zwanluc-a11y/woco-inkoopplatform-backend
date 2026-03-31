@@ -9,8 +9,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder, verify_org_eigenaar
-from app.models.user_organization import UserOrganization
+from app.api.deps import get_current_user, get_db
 from app.models.category_duration_setting import CategoryDurationSetting
 from app.models.contract import Contract
 from app.models.import_session import ImportSession
@@ -54,77 +53,13 @@ DEFAULT_THRESHOLDS = {
 }
 
 
-@router.get("")
+@router.get("", response_model=list[OrganizationResponse])
 def list_organizations(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    import logging as _logging
-    import traceback as _tb
-    _log = _logging.getLogger(__name__)
-    _log.info("list_organizations called by user %s (id=%s, role=%s)", current_user.email, current_user.id, current_user.platform_role)
-
-    try:
-        # Platform users see all organizations
-        if current_user.platform_role in ("eigenaar", "beheerder"):
-            orgs = db.query(Organization).order_by(Organization.name).all()
-        else:
-            # Regular users see only their memberships
-            orgs = (
-                db.query(Organization)
-                .join(UserOrganization, UserOrganization.organization_id == Organization.id)
-                .filter(UserOrganization.user_id == current_user.id)
-                .all()
-            )
-
-        _log.info("Found %d orgs, serializing...", len(orgs))
-
-        # Manual serialization to catch field-level errors
-        result = []
-        for org in orgs:
-            try:
-                result.append({
-                    "id": org.id,
-                    "name": org.name,
-                    "org_type": org.org_type,
-                    "description": org.description,
-                    "aantal_vhe": org.aantal_vhe,
-                    "created_by": org.created_by,
-                    "created_at": org.created_at.isoformat() if org.created_at else None,
-                    "updated_at": org.updated_at.isoformat() if org.updated_at else None,
-                    "thresholds": [
-                        {
-                            "id": t.id,
-                            "organization_id": t.organization_id,
-                            "threshold_period": t.threshold_period,
-                            "diensten_leveringen": float(t.diensten_leveringen or 0),
-                            "werken": float(t.werken or 0),
-                            "ict_diensten": float(t.ict_diensten or 0),
-                            "advies_diensten": float(t.advies_diensten or 0),
-                            "is_default": t.is_default,
-                            "created_at": t.created_at.isoformat() if t.created_at else None,
-                            "updated_at": t.updated_at.isoformat() if t.updated_at else None,
-                        }
-                        for t in (org.thresholds or [])
-                    ],
-                })
-            except Exception as e:
-                _log.error("Failed to serialize org %s (id=%s): %s", org.name, org.id, e)
-                _log.error(_tb.format_exc())
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Serialisatiefout bij org '{org.name}' (id={org.id}): {type(e).__name__}: {e}",
-                )
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        _log.error("list_organizations failed: %s", e)
-        _log.error(_tb.format_exc())
-        raise HTTPException(
-            status_code=500,
-            detail=f"Fout bij ophalen organisaties: {type(e).__name__}: {e}",
-        )
+    """Return all organizations for any authenticated user."""
+    return db.query(Organization).order_by(Organization.name).all()
 
 
 @router.post("", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED)
@@ -157,14 +92,13 @@ def create_organization(
         )
         db.add(threshold)
 
-    # Only create UserOrganization for non-platform users
-    if not current_user.platform_role:
-        membership = UserOrganization(
-            user_id=current_user.id,
-            organization_id=org.id,
-            role="eigenaar",
-        )
-        db.add(membership)
+    from app.models.user_organization import UserOrganization
+    membership = UserOrganization(
+        user_id=current_user.id,
+        organization_id=org.id,
+        role="eigenaar",
+    )
+    db.add(membership)
 
     db.commit()
     db.refresh(org)
@@ -176,7 +110,6 @@ def get_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     org = db.query(Organization).filter(Organization.id == org_id).first()
     if not org:
@@ -190,7 +123,6 @@ def update_organization(
     data: OrganizationUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     from sqlalchemy import text
     import logging
@@ -224,7 +156,6 @@ def get_thresholds(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     return db.query(Threshold).filter(Threshold.organization_id == org_id).all()
 
@@ -236,7 +167,6 @@ def update_threshold(
     data: ThresholdUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     threshold = (
         db.query(Threshold)
@@ -257,7 +187,6 @@ def delete_organization(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_eigenaar),
 ):
     """Delete an organization and ALL related data (cascade)."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -266,6 +195,7 @@ def delete_organization(
 
     # Delete related data in correct order (respecting foreign keys)
     from app.models.invitation import Invitation
+    from app.models.user_organization import UserOrganization
     db.query(Invitation).filter(Invitation.organization_id == org_id).delete()
     db.query(UserOrganization).filter(UserOrganization.organization_id == org_id).delete()
     db.query(ProcurementCalendarItem).filter(ProcurementCalendarItem.organization_id == org_id).delete()
@@ -329,7 +259,6 @@ def upload_brand_logo(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Upload an organization logo (shown in PDF report). No color extraction."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -356,7 +285,6 @@ def upload_brand_screenshot(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Upload a website screenshot to extract brand colors."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -396,7 +324,6 @@ def upload_brand_legacy(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Legacy: upload image as logo + extract colors. Use /brand/logo or /brand/screenshot instead."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -434,7 +361,6 @@ def update_brand_colors(
     data: BrandColorsUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Manually update brand colors."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -452,7 +378,6 @@ def get_brand_info(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Get brand logo, screenshot and colors for an organization."""
     org = db.query(Organization).filter(Organization.id == org_id).first()
@@ -499,7 +424,6 @@ def get_brand_image(
     image_type: Literal["logo", "screenshot"],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Serve a brand image (logo or screenshot) directly from DB or disk."""
 

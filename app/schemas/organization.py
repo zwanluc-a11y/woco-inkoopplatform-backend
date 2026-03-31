@@ -15,13 +15,13 @@ class ThresholdResponse(BaseModel):
     id: int
     organization_id: int
     threshold_period: str
-    diensten_leveringen: float
-    werken: float
-    ict_diensten: float
-    advies_diensten: float
-    is_default: bool
-    created_at: datetime
-    updated_at: datetime
+    diensten_leveringen: Optional[float] = 0
+    werken: Optional[float] = 0
+    ict_diensten: Optional[float] = 0
+    advies_diensten: Optional[float] = 0
+    is_default: Optional[bool] = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class ThresholdUpdate(BaseModel):
@@ -52,10 +52,10 @@ class OrganizationResponse(BaseModel):
 
     id: int
     name: str
-    org_type: str
+    org_type: Optional[str] = None
     description: Optional[str] = None
     aantal_vhe: Optional[int] = None
-    created_by: int
-    created_at: datetime
-    updated_at: datetime
+    created_by: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     thresholds: list[ThresholdResponse] = []

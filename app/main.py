@@ -120,41 +120,21 @@ async def strip_trailing_slash(request: Request, call_next):
 app.state.limiter = limiter
 
 
-def _cors_headers(request: Request) -> dict[str, str]:
-    """Build CORS headers to include on error responses.
-
-    When an exception is raised, CORSMiddleware may not always
-    attach the Access-Control-Allow-* headers.  Including them
-    manually ensures browsers can still read the error body
-    instead of showing an opaque "Failed to fetch".
-    """
-    origin = request.headers.get("origin", "")
-    if origin and origin in _allow_origins:
-        return {
-            "Access-Control-Allow-Origin": origin,
-            "Access-Control-Allow-Credentials": "true",
-        }
-    return {}
-
-
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
         status_code=429,
         content={"detail": "Te veel verzoeken. Probeer het later opnieuw."},
-        headers=_cors_headers(request),
     )
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
-    # Include error type + message so we can debug (will be sanitized later)
     detail = f"{type(exc).__name__}: {exc}"
     return JSONResponse(
         status_code=500,
         content={"detail": detail},
-        headers=_cors_headers(request),
     )
 
 
@@ -236,16 +216,14 @@ app.include_router(referentie.router, prefix="/api")
 
 @app.get("/")
 async def root():
-    return {"message": "WoCo Inkoopplatform API is running", "version": "2024-debug-5"}
+    return {"message": "WoCo Inkoopplatform API is running"}
 
 
 @app.get("/debug/seed-status")
 def seed_status(
     current_user: User = Depends(get_current_user),
 ):
-    """Seed status (platform eigenaar only)."""
-    if current_user.platform_role != "eigenaar":
-        raise HTTPException(status_code=403, detail="Alleen platform eigenaar")
+    """Seed status (any authenticated user)."""
     from sqlalchemy import text
     db = SessionLocal()
     try:
@@ -265,9 +243,7 @@ def seed_status(
 def reseed(
     current_user: User = Depends(get_current_user),
 ):
-    """Reseed data (platform eigenaar only)."""
-    if current_user.platform_role != "eigenaar":
-        raise HTTPException(status_code=403, detail="Alleen platform eigenaar")
+    """Reseed data (any authenticated user)."""
     db = SessionLocal()
     results = {}
     try:

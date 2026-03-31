@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, get_db, verify_platform_eigenaar
+from app.api.deps import get_current_user, get_db
 from app.config import settings
 from app.models.app_setting import AppSetting
 from app.models.user import User
@@ -77,7 +77,7 @@ def get_api_key_status(user: User = Depends(get_current_user), db: Session = Dep
 
 
 @router.put("/api-key")
-def update_api_key(data: ApiKeyUpdate, user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def update_api_key(data: ApiKeyUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     new_key = data.api_key.strip()
     if not new_key.startswith("sk-ant-"):
         return {"success": False, "error": "Ongeldige API key. Moet beginnen met 'sk-ant-'."}
@@ -93,7 +93,7 @@ def get_clerk_key_status(user: User = Depends(get_current_user), db: Session = D
 
 
 @router.put("/clerk-key")
-def update_clerk_key(data: ApiKeyUpdate, user: User = Depends(verify_platform_eigenaar), db: Session = Depends(get_db)):
+def update_clerk_key(data: ApiKeyUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     new_key = data.api_key.strip()
     if not new_key.startswith("sk_"):
         return {"success": False, "error": "Ongeldige Clerk key. Moet beginnen met 'sk_'."}
@@ -143,7 +143,7 @@ def get_auto_access_role(db: Session) -> str:
 
 @router.get("/auto-access-domains", response_model=AutoAccessDomainsResponse)
 def get_domains(
-    user: User = Depends(verify_platform_eigenaar),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     return AutoAccessDomainsResponse(
@@ -155,7 +155,7 @@ def get_domains(
 @router.put("/auto-access-domains", response_model=AutoAccessDomainsResponse)
 def update_domains(
     data: AutoAccessDomainsUpdate,
-    user: User = Depends(verify_platform_eigenaar),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     if data.default_role not in VALID_AUTO_ACCESS_ROLES:

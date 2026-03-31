@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.services.calendar_service import CalendarService
 
@@ -42,7 +42,6 @@ def generate_calendar(
     data: GenerateCalendarRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Generate calendar items from risk assessments and expiring contracts."""
     service = CalendarService(db)
@@ -58,7 +57,6 @@ def get_calendar(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Get all calendar items."""
     service = CalendarService(db)
@@ -73,7 +71,6 @@ def update_calendar_item(
     data: UpdateCalendarItemRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Update a calendar item."""
     service = CalendarService(db)
@@ -93,7 +90,6 @@ def update_phase(
     data: UpdatePhaseRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Update a procurement phase."""
     service = CalendarService(db)

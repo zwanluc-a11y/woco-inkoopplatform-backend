@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
-from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder
+from app.api.deps import get_current_user, get_db
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
 from app.models.supplier_yearly_spend import SupplierYearlySpend
@@ -64,7 +64,6 @@ def get_categorization_status(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_membership),
 ):
     """Get categorization progress for the organization."""
     service = CategorizationService(db)
@@ -76,7 +75,6 @@ def debug_categorization(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_membership),
 ):
     """Temporary debug endpoint to diagnose AI categorization issues."""
     from sqlalchemy import text, exists
@@ -156,7 +154,6 @@ def repair_category_ids(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Repair supplier_categorizations that reference wrong category IDs.
 
@@ -213,7 +210,6 @@ def auto_match_master_db(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Auto-categorize uncategorized suppliers using the Master Database.
 
@@ -296,7 +292,6 @@ def run_ai_categorization(
     data: AISuggestRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Run AI categorization for uncategorized suppliers."""
     service = CategorizationService(db)
@@ -323,7 +318,6 @@ def get_pending_suggestions(
     org_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_membership),
 ):
     """Get all pending AI suggestions for review, ordered by spend DESC."""
     service = CategorizationService(db)
@@ -363,7 +357,6 @@ def bulk_accept_suggestions(
     request: BulkAcceptRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Accept multiple AI suggestions at once."""
     service = CategorizationService(db)
@@ -377,7 +370,6 @@ def bulk_reject_suggestions(
     request: BulkRejectRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Reject multiple AI suggestions (delete the ai_suggested categorizations)."""
     service = CategorizationService(db)
@@ -392,7 +384,6 @@ def set_supplier_category(
     request: SetCategoryRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Set or update a supplier's PIANOo category."""
     service = CategorizationService(db)
@@ -423,7 +414,6 @@ def set_supplier_multi_categories(
     request: SetMultiCategoriesRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    _membership=Depends(verify_org_beheerder),
 ):
     """Assign multiple PIANOo categories to a supplier with percentage split."""
     # Validate supplier exists

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder, verify_org_eigenaar
+from app.api.deps import get_current_user, get_db
 from app.database import SessionLocal
 from app.models.contract import Contract, ContractSupplier
 from app.models.import_session import ImportSession
@@ -37,7 +37,6 @@ def upload_excel(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
     import_type: Annotated[Optional[str], Query()] = None,
 ):
     if not file.filename or not file.filename.endswith((".xlsx", ".xls", ".csv")):
@@ -113,7 +112,6 @@ def confirm_import(
     data: ImportConfirmRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     session = (
         db.query(ImportSession)
@@ -150,7 +148,6 @@ def import_status(
     session_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Poll import progress."""
     # Expire cached data so we get fresh values from the DB
@@ -170,7 +167,6 @@ def import_history(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     return (
         db.query(ImportSession)
@@ -185,7 +181,6 @@ def reset_spend_data(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_eigenaar),
 ):
     """Delete ALL spend-related data for this organization.
 
@@ -245,7 +240,6 @@ def delete_import(
     import_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_eigenaar),
 ):
     """Delete an import session and all transactions it created."""
     session = (

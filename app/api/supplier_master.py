@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_platform_eigenaar
+from app.api.deps import get_current_user, get_db
 from app.models.category import InkoopCategory
 from app.models.supplier_master_category import SupplierMasterCategory
 from app.models.user import User
@@ -110,7 +110,7 @@ def master_stats(
 def create_master_entry(
     req: CreateMasterEntryRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """Manually add a new supplier-category mapping."""
     category = db.query(InkoopCategory).get(req.category_id)
@@ -144,7 +144,7 @@ def update_master_entry(
     entry_id: int,
     req: UpdateMasterEntryRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """Update an existing master entry."""
     service = SupplierMasterService(db)
@@ -167,7 +167,7 @@ def update_master_entry(
 def delete_master_entry(
     entry_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """Delete a single master entry."""
     service = SupplierMasterService(db)
@@ -180,7 +180,7 @@ def delete_master_entry(
 @router.post("/clear-all")
 def clear_master_db(
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """Delete ALL master database entries. Used to reset and rebuild from scratch."""
     count = db.query(SupplierMasterCategory).count()
@@ -197,7 +197,7 @@ def import_csv(
     file: UploadFile = File(...),
     category_system: str = Query("woco", description="Categoriesysteem filter"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """Upload a CSV file with supplier_name and category_nummer columns."""
     content = file.file.read()
@@ -213,7 +213,7 @@ def import_csv(
 @router.post("/backfill")
 def backfill_from_existing(
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """One-time backfill: import all confirmed categorizations into master DB."""
     from app.models.supplier import Supplier
@@ -363,7 +363,7 @@ def suggest_categories(
 def bulk_categorize(
     req: BulkCategorizeRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(verify_platform_eigenaar),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Apply category assignments to multiple supplier master entries at once.

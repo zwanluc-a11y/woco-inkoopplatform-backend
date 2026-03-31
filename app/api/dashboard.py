@@ -11,7 +11,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_membership
+from app.api.deps import get_current_user, get_db
 
 logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
@@ -117,7 +117,6 @@ def organization_overview(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Get rich overview data for the organization dashboard."""
     today = date.today()
@@ -631,7 +630,6 @@ def generate_recommendations(
     request: Request,  # required by slowapi
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Generate AI-powered procurement recommendations based on overview data."""
     from app.services.recommendation_service import generate_recommendations as gen_recs
@@ -664,7 +662,6 @@ def organization_stats(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Get stats for a specific organization."""
     supplier_count = (

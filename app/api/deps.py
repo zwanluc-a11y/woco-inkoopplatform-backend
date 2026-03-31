@@ -8,7 +8,6 @@ from typing import Annotated, Optional
 import jwt
 from jwt import PyJWKClient
 from fastapi import Depends, HTTPException, Query, Request, status
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -128,33 +127,6 @@ def _fetch_clerk_user_info(clerk_id: str) -> dict:
     return info
 
 
-def _check_domain_whitelist(email: str, db: Session) -> Optional[str]:
-    """Check if the email domain is on the auto-access whitelist.
-
-    Returns the auto-access platform role if matched, None otherwise.
-    Uses direct DB queries to avoid circular imports with settings.py.
-    """
-    if not email or "@" not in email:
-        return None
-    domain = email.rsplit("@", 1)[1].lower()
-    try:
-        import json as _json
-        from app.models.app_setting import AppSetting
-        row = db.query(AppSetting).filter(AppSetting.key == "AUTO_ACCESS_DOMAINS").first()
-        if not row or not row.value:
-            return None
-        domains = _json.loads(row.value)
-        allowed = [d.lower().strip() for d in domains if d.strip()]
-        if domain not in allowed:
-            return None
-        role_row = db.query(AppSetting).filter(AppSetting.key == "AUTO_ACCESS_ROLE").first()
-        role = role_row.value if role_row and role_row.value in ("beheerder", "eigenaar") else "beheerder"
-        return role
-    except Exception as e:
-        logger.warning("Domain whitelist check failed: %s", e)
-    return None
-
-
 def _resolve_user(payload: dict, db: Session) -> User:
     clerk_id = payload.get("sub")
     if not clerk_id:
@@ -177,14 +149,6 @@ def _resolve_user(payload: dict, db: Session) -> User:
                 if display:
                     user.name = display
                     needs_update = True
-
-        # Auto-assign platform role from domain whitelist if user has none
-        if not user.platform_role and user.email:
-            auto_role = _check_domain_whitelist(user.email, db)
-            if auto_role:
-                user.platform_role = auto_role
-                needs_update = True
-                logger.info("Auto-assigned platform_role '%s' to %s via domain whitelist", auto_role, user.email)
 
         if needs_update:
             db.commit()
@@ -212,33 +176,13 @@ def _resolve_user(payload: dict, db: Session) -> User:
         user = db.query(User).filter(User.email == email).first()
         if user:
             user.clerk_id = clerk_id
-            # Auto-assign platform role from domain whitelist
-            if not user.platform_role:
-                auto_role = _check_domain_whitelist(email, db)
-                if auto_role:
-                    user.platform_role = auto_role
-                    logger.info("Auto-assigned platform_role '%s' to %s via domain whitelist", auto_role, email)
             db.commit()
             db.refresh(user)
             return user
 
-    # Create new user
+    # Create new user (no role assignment)
     name = display_name or "Gebruiker"
-    existing_owner = db.query(User).filter(
-        User.platform_role == "eigenaar",
-        User.clerk_id.isnot(None),
-        User.clerk_id != "",
-    ).first()
-
-    # Determine initial role: first user = eigenaar, whitelist match = auto role, else None
-    if not existing_owner:
-        initial_role = "eigenaar"
-    else:
-        initial_role = _check_domain_whitelist(email, db) if email else None
-
-    user = User(clerk_id=clerk_id, email=email, name=name, platform_role=initial_role)
-    if initial_role:
-        logger.info("New user %s gets platform_role '%s' (domain whitelist)" if initial_role != "eigenaar" else "New user %s gets platform_role '%s' (first user)", email, initial_role)
+    user = User(clerk_id=clerk_id, email=email, name=name, platform_role=None)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -275,62 +219,28 @@ def get_current_user_or_token(
     return _resolve_user(payload, db)
 
 
-ROLE_HIERARCHY = {"eigenaar": 3, "beheerder": 2, "kijker": 1}
-
-
-def _has_platform_access(user: User, min_role: str = "kijker") -> bool:
-    if not user.platform_role:
-        return False
-    return ROLE_HIERARCHY.get(user.platform_role, 0) >= ROLE_HIERARCHY.get(min_role, 99)
-
-
 def verify_org_membership(
     org_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ) -> UserOrganization:
-    if _has_platform_access(current_user):
-        return UserOrganization(user_id=current_user.id, organization_id=org_id, role=current_user.platform_role)
-    membership = db.query(UserOrganization).filter(
-        UserOrganization.user_id == current_user.id,
-        UserOrganization.organization_id == org_id,
-    ).first()
-    if not membership:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Geen toegang tot deze organisatie")
-    return membership
-
-
-def _verify_min_role(org_id: int, current_user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)], min_role: str) -> UserOrganization:
-    if _has_platform_access(current_user, min_role):
-        return UserOrganization(user_id=current_user.id, organization_id=org_id, role=current_user.platform_role)
-    membership = db.query(UserOrganization).filter(
-        UserOrganization.user_id == current_user.id,
-        UserOrganization.organization_id == org_id,
-    ).first()
-    if not membership:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Geen toegang tot deze organisatie")
-    if ROLE_HIERARCHY.get(membership.role, 0) < ROLE_HIERARCHY.get(min_role, 99):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Onvoldoende rechten voor deze actie")
-    return membership
+    """Any authenticated user has access — return a dummy membership."""
+    return UserOrganization(user_id=current_user.id, organization_id=org_id, role="eigenaar")
 
 
 def verify_org_beheerder(org_id: int, current_user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]) -> UserOrganization:
-    return _verify_min_role(org_id, current_user, db, "beheerder")
+    return verify_org_membership(org_id, current_user, db)
 
 
 def verify_org_eigenaar(org_id: int, current_user: Annotated[User, Depends(get_current_user)], db: Annotated[Session, Depends(get_db)]) -> UserOrganization:
-    return _verify_min_role(org_id, current_user, db, "eigenaar")
+    return verify_org_membership(org_id, current_user, db)
 
 
 def verify_platform_eigenaar(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-    if current_user.platform_role != "eigenaar":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Alleen de platform eigenaar kan het team beheren")
     return current_user
 
 
 def verify_platform_user(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-    if not _has_platform_access(current_user):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Alleen platformgebruikers hebben toegang")
     return current_user
 
 

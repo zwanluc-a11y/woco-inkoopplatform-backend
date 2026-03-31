@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_platform_eigenaar
+from app.api.deps import get_current_user, get_db
 from app.models.user import User
 
 VALID_PLATFORM_ROLES = ("eigenaar", "beheerder")
@@ -47,14 +47,12 @@ class TeamInviteRequest(BaseModel):
 
 @router.post(
     "/invite",
-    dependencies=[Depends(verify_platform_eigenaar)],
     status_code=status.HTTP_201_CREATED,
 )
 def invite_team_member(
     data: TeamInviteRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _owner: User = Depends(verify_platform_eigenaar),
 ):
     """Invite a user to the Inkada platform team.
 
@@ -90,7 +88,7 @@ class UpdatePlatformRoleRequest(BaseModel):
     platform_role: str
 
 
-@router.put("/{user_id}/role", dependencies=[Depends(verify_platform_eigenaar)])
+@router.put("/{user_id}/role")
 def update_team_member_role(
     user_id: int,
     data: UpdatePlatformRoleRequest,
@@ -124,7 +122,6 @@ def update_team_member_role(
 @router.delete(
     "/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(verify_platform_eigenaar)],
 )
 def remove_team_member(
     user_id: int,

@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_membership, verify_org_beheerder
+from app.api.deps import get_current_user, get_db
 from app.models.contract import Contract, ContractSupplier
 from app.models.category import InkoopCategory
 from app.models.supplier import Supplier
@@ -28,7 +28,6 @@ def spend_summary(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     rows = (
         db.query(
@@ -58,7 +57,6 @@ def spend_pivot(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
     years: Optional[str] = None,
     min_spend: float = 0,
     search: Optional[str] = None,
@@ -146,7 +144,6 @@ def spend_by_category(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
     year: Optional[int] = None,
 ):
     query = (
@@ -183,7 +180,6 @@ def category_growth(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Get year-over-year growth per category."""
     rows = (
@@ -267,7 +263,6 @@ def new_suppliers(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
     year: Optional[int] = None,
 ):
     """Detect suppliers that appeared in a given year but not in prior years."""
@@ -385,7 +380,6 @@ def toggle_beinvloedbaar(
     body: BeinvloedbaarheidUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Toggle whether a supplier is beïnvloedbaar (influenceable)."""
     supplier = (
@@ -448,7 +442,6 @@ def suggest_niet_beinvloedbaar(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Suggest suppliers that are commonly considered niet-beïnvloedbaar."""
     # Only suggest for suppliers that are currently marked as beïnvloedbaar
@@ -503,7 +496,6 @@ def bulk_toggle_beinvloedbaar(
     body: BulkBeinvloedbaarheidUpdate,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Bulk update beïnvloedbaar status for multiple suppliers."""
     updated = (
@@ -526,7 +518,6 @@ def multi_year_trends(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """Get multi-year spend trends at total and groep level."""
     totals = (

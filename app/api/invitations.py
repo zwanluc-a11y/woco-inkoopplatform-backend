@@ -11,7 +11,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, verify_org_beheerder, verify_org_membership
+from app.api.deps import get_current_user, get_db
 from app.config import settings
 from app.models.invitation import Invitation
 from app.models.user import User
@@ -40,7 +40,6 @@ def create_invitation(
     data: CreateInvitationRequest,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Generate a new invitation link."""
     if data.role not in VALID_ROLES:
@@ -82,7 +81,6 @@ def list_invitations(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_membership),
 ):
     """List all invitations for this organization.
 
@@ -115,7 +113,6 @@ def delete_invitation(
     invitation_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
-    _membership=Depends(verify_org_beheerder),
 ):
     """Delete an invitation."""
     inv = (
