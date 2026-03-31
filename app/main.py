@@ -50,6 +50,7 @@ def _add_missing_columns() -> None:
         ("organizations", "corporatie_l_nummer", "VARCHAR(20)"),
         ("organizations", "aantal_vhe", "INTEGER"),
         ("contracts", "contract_vorm", "VARCHAR(100)"),
+        ("thresholds", "advies_diensten", "NUMERIC(12,2) DEFAULT 0"),
     ]
     conn = engine.connect()
     for table, col, col_type in columns_to_add:
@@ -148,9 +149,11 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled error on %s %s: %s", request.method, request.url.path, exc)
+    # Include error type + message so we can debug (will be sanitized later)
+    detail = f"{type(exc).__name__}: {exc}"
     return JSONResponse(
         status_code=500,
-        content={"detail": "Er is een interne serverfout opgetreden. Probeer het later opnieuw."},
+        content={"detail": detail},
         headers=_cors_headers(request),
     )
 
@@ -179,20 +182,7 @@ app.add_middleware(
 # Location headers to https:// when X-Forwarded-Proto indicates HTTPS.
 @app.middleware("http")
 async def fix_https_redirects(request: Request, call_next):
-    try:
-        response: Response = await call_next(request)
-    except Exception as exc:
-        logger.exception("Middleware caught unhandled error on %s %s", request.method, request.url.path)
-        response = JSONResponse(
-            status_code=500,
-            content={"detail": "Er is een interne serverfout opgetreden."},
-        )
-        # Ensure CORS headers so the browser can read the error
-        origin = request.headers.get("origin", "")
-        if origin and origin in _allow_origins:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-        return response
+    response: Response = await call_next(request)
     if (
         response.status_code in (301, 302, 307, 308)
         and "location" in response.headers

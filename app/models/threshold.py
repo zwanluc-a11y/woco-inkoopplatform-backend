@@ -11,7 +11,7 @@ class Threshold(Base):
     diensten_leveringen: Mapped[float] = mapped_column(Numeric(12, 2))
     werken: Mapped[float] = mapped_column(Numeric(12, 2))
     ict_diensten: Mapped[float] = mapped_column(Numeric(12, 2))
-    advies_diensten: Mapped[float] = mapped_column(Numeric(12, 2))
+    advies_diensten: Mapped[float] = mapped_column(Numeric(12, 2), default=0, server_default="0")
     is_default: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -132,15 +132,24 @@ def _check_domain_whitelist(email: str, db: Session) -> Optional[str]:
     """Check if the email domain is on the auto-access whitelist.
 
     Returns the auto-access platform role if matched, None otherwise.
+    Uses direct DB queries to avoid circular imports with settings.py.
     """
     if not email or "@" not in email:
         return None
     domain = email.rsplit("@", 1)[1].lower()
     try:
-        from app.api.settings import get_auto_access_domains, get_auto_access_role
-        allowed = get_auto_access_domains(db)
-        if domain in allowed:
-            return get_auto_access_role(db)
+        import json as _json
+        from app.models.app_setting import AppSetting
+        row = db.query(AppSetting).filter(AppSetting.key == "AUTO_ACCESS_DOMAINS").first()
+        if not row or not row.value:
+            return None
+        domains = _json.loads(row.value)
+        allowed = [d.lower().strip() for d in domains if d.strip()]
+        if domain not in allowed:
+            return None
+        role_row = db.query(AppSetting).filter(AppSetting.key == "AUTO_ACCESS_ROLE").first()
+        role = role_row.value if role_row and role_row.value in ("beheerder", "eigenaar") else "beheerder"
+        return role
     except Exception as e:
         logger.warning("Domain whitelist check failed: %s", e)
     return None
