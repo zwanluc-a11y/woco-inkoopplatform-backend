@@ -139,6 +139,131 @@ def spend_pivot(
     }
 
 
+@router.get("/pivot-by-category")
+def spend_pivot_by_category(
+    org_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    search: Optional[str] = None,
+):
+    """Pivot table grouped by category, with suppliers nested inside each category."""
+    query = db.query(Supplier).filter(Supplier.organization_id == org_id)
+    if search:
+        safe_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        # Search in both category name and supplier name
+        query = query.join(Supplier.categorizations).join(SupplierCategorization.category).filter(
+            (Supplier.name.ilike(f"%{safe_search}%", escape="\\")) |
+            (InkoopCategory.inkooppakket.ilike(f"%{safe_search}%", escape="\\"))
+        ).distinct()
+
+    suppliers = query.all()
+
+    # Build contract lookup
+    contract_supplier_rows = (
+        db.query(ContractSupplier.supplier_id, Contract.name)
+        .join(Contract, Contract.id == ContractSupplier.contract_id)
+        .filter(Contract.organization_id == org_id)
+        .all()
+    )
+    supplier_contracts: dict[int, list[str]] = {}
+    for row in contract_supplier_rows:
+        supplier_contracts.setdefault(row.supplier_id, []).append(row.name)
+
+    # Group by category
+    categories_map: dict[int | None, dict] = {}
+
+    for s in suppliers:
+        spends: dict[str, float] = {}
+        total = 0.0
+        for ys in s.yearly_spends:
+            spends[str(ys.year)] = float(ys.total_amount)
+            total += float(ys.total_amount)
+
+        contracts_for_supplier = supplier_contracts.get(s.id, [])
+        supplier_data = {
+            "id": s.id,
+            "name": s.name,
+            "supplier_code": s.supplier_code,
+            "is_beinvloedbaar": s.is_beinvloedbaar,
+            "has_contract": len(contracts_for_supplier) > 0,
+            "contract_names": contracts_for_supplier,
+            "spends": spends,
+            "total": total,
+        }
+
+        cats = s.categorizations or []
+        if not cats:
+            # Uncategorized
+            cat_key = None
+            if cat_key not in categories_map:
+                categories_map[cat_key] = {
+                    "category_id": None,
+                    "category_name": "Ongecategoriseerd",
+                    "suppliers": [],
+                    "spends": defaultdict(float),
+                    "total": 0.0,
+                    "supplier_count": 0,
+                }
+            cat = categories_map[cat_key]
+            cat["suppliers"].append(supplier_data)
+            cat["supplier_count"] += 1
+            cat["total"] += total
+            for yr, amt in spends.items():
+                cat["spends"][yr] += amt
+        else:
+            # Distribute across categories based on percentage
+            for sc in cats:
+                cat_id = sc.category_id
+                cat_name = sc.category.inkooppakket if sc.category else "Onbekend"
+                pct = sc.percentage / 100.0
+
+                if cat_id not in categories_map:
+                    categories_map[cat_id] = {
+                        "category_id": cat_id,
+                        "category_name": cat_name,
+                        "suppliers": [],
+                        "spends": defaultdict(float),
+                        "total": 0.0,
+                        "supplier_count": 0,
+                    }
+                cat = categories_map[cat_id]
+                # Add supplier with weighted spend
+                weighted_spends = {yr: amt * pct for yr, amt in spends.items()}
+                weighted_total = total * pct
+                cat["suppliers"].append({
+                    **supplier_data,
+                    "spends": weighted_spends,
+                    "total": weighted_total,
+                    "percentage": sc.percentage,
+                })
+                cat["supplier_count"] += 1
+                cat["total"] += weighted_total
+                for yr, amt in weighted_spends.items():
+                    cat["spends"][yr] += amt
+
+    # Convert to list and sort
+    result = []
+    for cat in categories_map.values():
+        # Sort suppliers within category by total desc
+        cat["suppliers"].sort(key=lambda x: abs(x["total"]), reverse=True)
+        result.append({
+            "category_id": cat["category_id"],
+            "category_name": cat["category_name"],
+            "supplier_count": cat["supplier_count"],
+            "spends": dict(cat["spends"]),
+            "total": cat["total"],
+            "suppliers": cat["suppliers"],
+        })
+
+    # Sort categories by total desc
+    result.sort(key=lambda x: abs(x["total"]), reverse=True)
+
+    return {
+        "categories": result,
+        "total_count": len(result),
+    }
+
+
 @router.get("/by-category")
 def spend_by_category(
     org_id: int,
