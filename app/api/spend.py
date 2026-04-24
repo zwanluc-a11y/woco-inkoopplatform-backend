@@ -12,10 +12,30 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.contract import Contract, ContractSupplier
 from app.models.category import InkoopCategory
+from app.models.category_department import CategoryDepartment
 from app.models.supplier import Supplier
 from app.models.supplier_categorization import SupplierCategorization
 from app.models.supplier_yearly_spend import SupplierYearlySpend
 from app.models.user import User
+
+
+def _supplier_ids_for_department(db: Session, org_id: int, afdeling: str) -> set[int]:
+    """Get supplier IDs that have at least one category in the given department."""
+    rows = (
+        db.query(SupplierCategorization.supplier_id)
+        .join(
+            CategoryDepartment,
+            (CategoryDepartment.category_id == SupplierCategorization.category_id)
+            & (CategoryDepartment.organization_id == SupplierCategorization.organization_id),
+        )
+        .filter(
+            SupplierCategorization.organization_id == org_id,
+            CategoryDepartment.afdeling == afdeling,
+        )
+        .distinct()
+        .all()
+    )
+    return {r.supplier_id for r in rows}
 
 router = APIRouter(
     prefix="/organizations/{org_id}/spend",
@@ -28,16 +48,23 @@ def spend_summary(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    afdeling: Optional[str] = None,
 ):
+    q = db.query(
+        SupplierYearlySpend.year,
+        func.sum(SupplierYearlySpend.total_amount).label("total_spend"),
+        func.count(SupplierYearlySpend.supplier_id.distinct()).label("supplier_count"),
+        func.sum(SupplierYearlySpend.transaction_count).label("transaction_count"),
+    ).filter(SupplierYearlySpend.organization_id == org_id)
+
+    if afdeling:
+        allowed_ids = _supplier_ids_for_department(db, org_id, afdeling)
+        if not allowed_ids:
+            return []
+        q = q.filter(SupplierYearlySpend.supplier_id.in_(allowed_ids))
+
     rows = (
-        db.query(
-            SupplierYearlySpend.year,
-            func.sum(SupplierYearlySpend.total_amount).label("total_spend"),
-            func.count(SupplierYearlySpend.supplier_id.distinct()).label("supplier_count"),
-            func.sum(SupplierYearlySpend.transaction_count).label("transaction_count"),
-        )
-        .filter(SupplierYearlySpend.organization_id == org_id)
-        .group_by(SupplierYearlySpend.year)
+        q.group_by(SupplierYearlySpend.year)
         .order_by(SupplierYearlySpend.year)
         .all()
     )
@@ -60,6 +87,7 @@ def spend_pivot(
     years: Optional[str] = None,
     min_spend: float = 0,
     search: Optional[str] = None,
+    afdeling: Optional[str] = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=1000),
 ):
@@ -68,7 +96,13 @@ def spend_pivot(
     if search:
         safe_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         query = query.filter(Supplier.name.ilike(f"%{safe_search}%", escape="\\"))
-    
+
+    if afdeling:
+        allowed_ids = _supplier_ids_for_department(db, org_id, afdeling)
+        if not allowed_ids:
+            return {"total_count": 0, "page": page, "page_size": page_size, "suppliers": []}
+        query = query.filter(Supplier.id.in_(allowed_ids))
+
     suppliers = query.all()
 
     # Build set of supplier IDs that have at least one contract
@@ -145,6 +179,7 @@ def spend_pivot_by_category(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
     search: Optional[str] = None,
+    afdeling: Optional[str] = None,
 ):
     """Pivot table grouped by category, with suppliers nested inside each category."""
     query = db.query(Supplier).filter(Supplier.organization_id == org_id)
@@ -155,6 +190,21 @@ def spend_pivot_by_category(
             (Supplier.name.ilike(f"%{safe_search}%", escape="\\")) |
             (InkoopCategory.inkooppakket.ilike(f"%{safe_search}%", escape="\\"))
         ).distinct()
+
+    # Get category IDs in the requested department, if any
+    allowed_cat_ids: Optional[set[int]] = None
+    if afdeling:
+        cat_rows = (
+            db.query(CategoryDepartment.category_id)
+            .filter(
+                CategoryDepartment.organization_id == org_id,
+                CategoryDepartment.afdeling == afdeling,
+            )
+            .all()
+        )
+        allowed_cat_ids = {r.category_id for r in cat_rows}
+        if not allowed_cat_ids:
+            return {"categories": [], "total_count": 0}
 
     suppliers = query.all()
 
@@ -192,6 +242,11 @@ def spend_pivot_by_category(
         }
 
         cats = s.categorizations or []
+        if allowed_cat_ids is not None:
+            cats = [c for c in cats if c.category_id in allowed_cat_ids]
+            if not cats:
+                # Supplier has no categories in this department — skip entirely
+                continue
         if not cats:
             # Uncategorized
             cat_key = None
@@ -270,6 +325,7 @@ def spend_insights(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
     search: Optional[str] = None,
+    afdeling: Optional[str] = None,
     sort_by: str = Query("total_spend", regex="^(total_spend|avg_invoice|transaction_count|name)$"),
     page: int = Query(1, ge=1),
     page_size: int = Query(100, ge=1, le=1000),
@@ -279,6 +335,17 @@ def spend_insights(
     if search:
         safe_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         query = query.filter(Supplier.name.ilike(f"%{safe_search}%", escape="\\"))
+
+    if afdeling:
+        allowed_ids = _supplier_ids_for_department(db, org_id, afdeling)
+        if not allowed_ids:
+            return {
+                "total_count": 0, "page": page, "page_size": page_size,
+                "suppliers": [], "year_summaries": [],
+                "totals": {"total_spend": 0, "total_transactions": 0, "avg_invoice": 0, "supplier_count": 0},
+                "top_avg_invoice": [], "top_transactions": [],
+            }
+        query = query.filter(Supplier.id.in_(allowed_ids))
 
     suppliers = query.all()
 

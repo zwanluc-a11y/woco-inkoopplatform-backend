@@ -15,7 +15,7 @@ from app.services.seed_service import seed_inkoop_categories, seed_user_organiza
 # Import all models so Base.metadata knows about every table
 import app.models  # noqa: F401
 
-from app.api import auth, organizations, categories, suppliers, imports, spend, categorization, risk, contracts, calendar, export, dashboard, settings, invitations, members, team, supplier_master, corporaties, referentie
+from app.api import auth, organizations, categories, suppliers, imports, spend, categorization, risk, contracts, calendar, export, dashboard, settings, invitations, members, team, supplier_master, corporaties, referentie, departments
 
 logger = logging.getLogger(__name__)
 
@@ -211,6 +211,7 @@ app.include_router(team.router, prefix="/api")
 app.include_router(supplier_master.router, prefix="/api")
 app.include_router(corporaties.router, prefix="/api")
 app.include_router(referentie.router, prefix="/api")
+app.include_router(departments.router, prefix="/api")
 
 
 @app.get("/")
