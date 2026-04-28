@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.category import InkoopCategory
 from app.models.category_department import CategoryDepartment
+from app.models.supplier_categorization import SupplierCategorization
 from app.models.user import User
 
 router = APIRouter(
@@ -49,17 +50,51 @@ def list_category_mappings(
     org_id: int,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
+    only_in_use: bool = True,
 ):
-    """List all category → department mappings for this organization."""
+    """List category → department mappings for this organization.
+
+    By default only returns categories actually used by the organization
+    (i.e. with at least one supplier categorized to it). Set only_in_use=False
+    to see the full Aedes/Woco taxonomy.
+    """
     mappings = (
         db.query(CategoryDepartment)
         .filter(CategoryDepartment.organization_id == org_id)
         .all()
     )
-
-    # Build full list of all categories with their department (or null)
-    all_categories = db.query(InkoopCategory).all()
     mapping_by_cat = {m.category_id: m.afdeling for m in mappings}
+
+    # Get categories actually in use by this org
+    in_use_ids = {
+        r.category_id
+        for r in db.query(SupplierCategorization.category_id)
+        .filter(SupplierCategorization.organization_id == org_id)
+        .distinct()
+        .all()
+    }
+
+    # Count suppliers per category for context
+    supplier_counts: dict[int, int] = {}
+    for row in (
+        db.query(
+            SupplierCategorization.category_id,
+            SupplierCategorization.supplier_id,
+        )
+        .filter(SupplierCategorization.organization_id == org_id)
+        .distinct()
+        .all()
+    ):
+        supplier_counts[row.category_id] = supplier_counts.get(row.category_id, 0) + 1
+
+    if only_in_use:
+        all_categories = (
+            db.query(InkoopCategory)
+            .filter(InkoopCategory.id.in_(in_use_ids))
+            .all()
+        ) if in_use_ids else []
+    else:
+        all_categories = db.query(InkoopCategory).all()
 
     result = []
     for cat in all_categories:
@@ -68,6 +103,8 @@ def list_category_mappings(
             "category_name": cat.inkooppakket,
             "groep": cat.groep,
             "afdeling": mapping_by_cat.get(cat.id),
+            "supplier_count": supplier_counts.get(cat.id, 0),
+            "in_use": cat.id in in_use_ids,
         })
 
     # Sort: first by afdeling (with null last), then by name
@@ -76,6 +113,8 @@ def list_category_mappings(
         "mappings": result,
         "total_count": len(result),
         "mapped_count": sum(1 for r in result if r["afdeling"]),
+        "in_use_count": len(in_use_ids),
+        "all_categories_count": db.query(InkoopCategory).count(),
     }
 
 
@@ -165,8 +204,26 @@ def bulk_update_mappings(
     return {"updated": updated, "cleared": cleared}
 
 
+# Default department mapping by GROUP (covers all 119 Woco categories)
+# Maps the `groep` field of each category to a default department.
+DEFAULT_GROUP_DEPARTMENT_MAP: dict[str, str] = {
+    "1-Vastgoed": "Vastgoed",
+    "2-Installaties": "Vastgoed",
+    "3-Veiligheid": "Vastgoed",
+    "7-Energie": "Vastgoed",
+    "12-Vastgoedbeheer": "Vastgoed",
+    "11-Sociaal": "Wonen en Leefbaarheid",
+    "4-Facilitair": "Bedrijfsvoering",
+    "5-ICT": "Bedrijfsvoering",
+    "6-Advies": "Bedrijfsvoering",
+    "8-Personeel": "Bedrijfsvoering",
+    "9-Financieel": "Bedrijfsvoering",
+    "10-Communicatie": "Bedrijfsvoering",
+}
+
+
 # Default department mapping (from Eigen Haard Categoriemonitor)
-# Used to pre-populate mappings based on category name match.
+# Used to pre-populate mappings based on category name match. Overrides group default.
 DEFAULT_CATEGORY_DEPARTMENT_MAP: dict[str, str] = {
     "Afval": "Vastgoed",
     "Asbest": "Vastgoed",
@@ -213,15 +270,36 @@ def seed_default_mappings(
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_user)],
     overwrite: bool = False,
+    only_in_use: bool = True,
 ):
-    """Seed default category → department mappings based on the Categoriemonitor reference.
+    """Seed default category → department mappings.
 
-    Matches on category name (case-insensitive, trimmed). Skips categories that
-    already have a mapping unless overwrite=True.
+    Strategy:
+      1. First try a name-based match (specific Eigen Haard mapping).
+      2. Otherwise, fall back to a `groep`-based mapping that covers all 119 categories.
+
+    By default only seeds categories actually in use by the organization.
+    Set only_in_use=False to seed every category in the Woco taxonomy.
+    Skips categories that already have a mapping unless overwrite=True.
     """
-    all_categories = db.query(InkoopCategory).all()
-    # Normalize default map (lowercase for lookup)
-    default_lower = {k.lower().strip(): v for k, v in DEFAULT_CATEGORY_DEPARTMENT_MAP.items()}
+    name_lower = {k.lower().strip(): v for k, v in DEFAULT_CATEGORY_DEPARTMENT_MAP.items()}
+
+    # Build category list — restrict to in-use categories by default
+    if only_in_use:
+        in_use_ids = {
+            r.category_id
+            for r in db.query(SupplierCategorization.category_id)
+            .filter(SupplierCategorization.organization_id == org_id)
+            .distinct()
+            .all()
+        }
+        all_categories = (
+            db.query(InkoopCategory)
+            .filter(InkoopCategory.id.in_(in_use_ids))
+            .all()
+        ) if in_use_ids else []
+    else:
+        all_categories = db.query(InkoopCategory).all()
 
     existing_mappings = {
         m.category_id: m
@@ -230,17 +308,26 @@ def seed_default_mappings(
         .all()
     }
 
-    matched = 0
+    matched_by_name = 0
+    matched_by_group = 0
     added = 0
     updated = 0
     skipped = 0
+    no_match = 0
 
     for cat in all_categories:
         cat_name_lower = (cat.inkooppakket or "").lower().strip()
-        afd = default_lower.get(cat_name_lower)
-        if not afd:
-            continue
-        matched += 1
+        afd = name_lower.get(cat_name_lower)
+        if afd:
+            matched_by_name += 1
+        else:
+            afd = DEFAULT_GROUP_DEPARTMENT_MAP.get((cat.groep or "").strip())
+            if afd:
+                matched_by_group += 1
+            else:
+                no_match += 1
+                continue
+
         existing = existing_mappings.get(cat.id)
         if existing:
             if overwrite:
@@ -260,9 +347,11 @@ def seed_default_mappings(
 
     db.commit()
     return {
-        "matched": matched,
+        "matched_by_name": matched_by_name,
+        "matched_by_group": matched_by_group,
         "added": added,
         "updated": updated,
         "skipped": skipped,
+        "no_match": no_match,
         "total_categories": len(all_categories),
     }
