@@ -95,6 +95,18 @@ async def lifespan(app: FastAPI):
     _add_missing_columns()
     logger.info("Running seed_initial_data ...")
     await seed_initial_data()
+    # Backfill soort_inkoop for any categories that don't have it yet
+    try:
+        from app.services.soort_inkoop_classifier import backfill_soort_inkoop
+        db = SessionLocal()
+        try:
+            result = backfill_soort_inkoop(db)
+            if result["updated"] > 0:
+                logger.info("Backfilled soort_inkoop for %d categories: %s", result["updated"], result["by_soort"])
+        finally:
+            db.close()
+    except Exception as e:
+        logger.error("soort_inkoop backfill failed: %s", e)
     yield
 
 

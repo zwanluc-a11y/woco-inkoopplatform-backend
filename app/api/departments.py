@@ -85,10 +85,10 @@ def department_insights(
         s.id: s.name for s in db.query(Supplier).filter(Supplier.organization_id == org_id).all()
     }
 
-    # Get category names
-    category_names = {
-        c.id: c.inkooppakket for c in db.query(InkoopCategory).all()
-    }
+    # Get category names + soort_inkoop
+    all_cats = db.query(InkoopCategory).all()
+    category_names = {c.id: c.inkooppakket for c in all_cats}
+    category_soort = {c.id: (c.soort_inkoop or "Diensten") for c in all_cats}
 
     # Get contracts with their suppliers, and resolve which department each contract belongs to
     contracts = (
@@ -115,8 +115,10 @@ def department_insights(
         "transactions_per_year": defaultdict(int),
         "category_spend": defaultdict(float),
         "category_supplier_count": defaultdict(set),
+        "spend_by_soort": defaultdict(float),
     })
     all_years: set[int] = set()
+    org_spend_by_soort: dict[str, float] = defaultdict(float)
 
     # Distribute supplier spend across departments by categorization weights
     for ys in yearly_spends:
@@ -144,8 +146,13 @@ def department_insights(
                 # Re-look up the specific pct for this supplier+category
                 for sc_afd, sc_pct, sc_cat in weights:
                     if sc_cat == cat_id and sc_afd == afd:
-                        d["category_spend"][cat_id] += float(ys.total_amount) * sc_pct
+                        cat_spend = float(ys.total_amount) * sc_pct
+                        d["category_spend"][cat_id] += cat_spend
                         d["category_supplier_count"][cat_id].add(ys.supplier_id)
+                        # Soort_inkoop accumulation
+                        soort = category_soort.get(cat_id, "Diensten")
+                        d["spend_by_soort"][soort] += cat_spend
+                        org_spend_by_soort[soort] += cat_spend
                         break
 
     # Allocate contracts to departments based on their suppliers' categorizations
@@ -186,6 +193,12 @@ def department_insights(
             for y in years_sorted
         ]
 
+        # Build soort breakdown for this department
+        soort_breakdown = {
+            soort: round(d["spend_by_soort"].get(soort, 0.0), 2)
+            for soort in ("Werken", "Leveringen", "Diensten")
+        }
+
         departments_out.append({
             "name": afd,
             "category_count": len(d["category_ids"]),
@@ -194,6 +207,7 @@ def department_insights(
             "total_spend": round(d["total_spend"], 2),
             "spend_per_year": spend_per_year,
             "top_categories": top_cats_out,
+            "spend_by_soort": soort_breakdown,
         })
 
     departments_out.sort(key=lambda x: x["total_spend"], reverse=True)
@@ -219,6 +233,10 @@ def department_insights(
             "total_suppliers": total_suppliers_unique,
             "total_contracts": total_contracts_unique,
             "total_categories_mapped": len(cat_to_afd),
+            "spend_by_soort": {
+                soort: round(org_spend_by_soort.get(soort, 0.0), 2)
+                for soort in ("Werken", "Leveringen", "Diensten")
+            },
         },
         "unmapped": {
             "supplier_count": len(unmapped_suppliers),
