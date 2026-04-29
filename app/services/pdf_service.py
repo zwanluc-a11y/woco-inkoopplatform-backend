@@ -63,10 +63,24 @@ ORG_TYPE_LABELS = {
 
 logger = logging.getLogger(__name__)
 
-# Default Inkada colors
+# Default Adjust colors
 DEFAULT_PRIMARY = "#1D2F45"
 DEFAULT_SECONDARY = "#C8A45A"
 DEFAULT_ACCENT = "#E8313A"
+
+# Light theme paper backgrounds (used in tables and KPI cards)
+BG_PAPER = HexColor("#FAFAF7")
+ROW_ALT = HexColor("#F4F1EA")
+GRID_LINE = HexColor("#E5E0D5")
+MUTED_TEXT = HexColor("#666666")
+SOFT_TEXT = HexColor("#333333")
+
+# Soort inkoop palette (Aanbestedingswet: Werken / Leveringen / Diensten)
+SOORT_COLORS = {
+    "Werken": HexColor("#1D2F45"),       # navy
+    "Leveringen": HexColor("#C8A45A"),   # gold
+    "Diensten": HexColor("#8B9DAF"),     # muted blue-grey
+}
 
 # Risk level colors
 RISK_COLORS = {
@@ -134,11 +148,12 @@ class PDFReportService:
 
             def save(self):
                 pages = list(self._saved_page_states)
-                total = len(pages)
+                # Cover is page 1; for body pagination we count from page 2
+                total_body = max(0, len(pages) - 1)
                 for idx, state in enumerate(pages):
                     self.__dict__.update(state)
                     if idx > 0:  # skip cover page
-                        _NC._draw_header_footer(self, idx + 1, total)
+                        _NC._draw_header_footer(self, idx, total_body)
                     super(_NC, self).showPage()
                 super(_NC, self).save()
 
@@ -166,9 +181,9 @@ class PDFReportService:
                 # ── Footer ──
                 c.setStrokeColor(HexColor(primary_hex))
                 c.line(2 * cm, 1.5 * cm, w - 2 * cm, 1.5 * cm)
-                c.setFont("Helvetica", 8)
-                c.setFillColor(HexColor("#999999"))
-                c.drawString(2 * cm, 1.0 * cm, "Inkada")
+                c.setFont("Helvetica-Bold", 8)
+                c.setFillColor(HexColor(primary_hex))
+                c.drawString(2 * cm, 1.0 * cm, "Adjust")
                 c.setFillColor(HexColor("#666666"))
                 c.drawRightString(
                     w - 2 * cm, 1.0 * cm,
@@ -181,47 +196,87 @@ class PDFReportService:
     @staticmethod
     def _create_styles(primary, secondary):
         styles = getSampleStyleSheet()
+        # Cover (white text on dark navy)
         styles.add(ParagraphStyle(
-            name="CoverTitle", fontSize=28, textColor=primary,
-            fontName="Helvetica-Bold", alignment=1, spaceAfter=12,
+            name="CoverEyebrow", fontSize=11, textColor=secondary,
+            fontName="Helvetica-Bold", alignment=0, spaceAfter=8,
         ))
         styles.add(ParagraphStyle(
-            name="CoverSubtitle", fontSize=14, textColor=HexColor("#666666"),
-            fontName="Helvetica", alignment=1, spaceAfter=6,
+            name="CoverTitle", fontSize=36, textColor=rl_colors.white,
+            fontName="Helvetica-Bold", alignment=0, spaceAfter=10, leading=42,
         ))
         styles.add(ParagraphStyle(
-            name="SectionTitle", fontSize=18, textColor=primary,
-            fontName="Helvetica-Bold", spaceBefore=20, spaceAfter=12,
+            name="CoverSubtitle", fontSize=14, textColor=HexColor("#D0D7DF"),
+            fontName="Helvetica", alignment=0, spaceAfter=6, leading=18,
         ))
         styles.add(ParagraphStyle(
-            name="SubTitle", fontSize=13, textColor=secondary,
-            fontName="Helvetica-Bold", spaceBefore=12, spaceAfter=8,
+            name="CoverMeta", fontSize=10, textColor=HexColor("#D0D7DF"),
+            fontName="Helvetica", alignment=0, spaceAfter=4,
+        ))
+        # Body sections
+        styles.add(ParagraphStyle(
+            name="SectionTitle", fontSize=20, textColor=primary,
+            fontName="Helvetica-Bold", spaceBefore=8, spaceAfter=4, leading=24,
         ))
         styles.add(ParagraphStyle(
-            name="BodyText2", fontSize=10, textColor=HexColor("#333333"),
-            fontName="Helvetica", spaceAfter=6, leading=14,
+            name="SectionEyebrow", fontSize=9, textColor=secondary,
+            fontName="Helvetica-Bold", spaceBefore=0, spaceAfter=2,
         ))
         styles.add(ParagraphStyle(
-            name="BulletText", fontSize=10, textColor=HexColor("#333333"),
-            fontName="Helvetica", leftIndent=20, spaceAfter=4, leading=14,
+            name="SubTitle", fontSize=13, textColor=primary,
+            fontName="Helvetica-Bold", spaceBefore=14, spaceAfter=6, leading=16,
+        ))
+        styles.add(ParagraphStyle(
+            name="BodyText2", fontSize=9.5, textColor=SOFT_TEXT,
+            fontName="Helvetica", spaceAfter=6, leading=13,
+        ))
+        styles.add(ParagraphStyle(
+            name="BodyMuted", fontSize=8.5, textColor=MUTED_TEXT,
+            fontName="Helvetica", spaceAfter=4, leading=12,
+        ))
+        styles.add(ParagraphStyle(
+            name="BulletText", fontSize=9.5, textColor=SOFT_TEXT,
+            fontName="Helvetica", leftIndent=18, spaceAfter=3, leading=13,
+            bulletIndent=8,
+        ))
+        # KPI styles
+        styles.add(ParagraphStyle(
+            name="KPILabel", fontSize=8, textColor=secondary,
+            fontName="Helvetica-Bold", alignment=0, spaceAfter=2,
+        ))
+        styles.add(ParagraphStyle(
+            name="KPIValue", fontSize=18, textColor=primary,
+            fontName="Helvetica-Bold", alignment=0, spaceAfter=2, leading=20,
+        ))
+        styles.add(ParagraphStyle(
+            name="KPISub", fontSize=8, textColor=MUTED_TEXT,
+            fontName="Helvetica", alignment=0,
         ))
         return styles
 
     # ── Table helper ────────────────────────────────────────────────────
     @staticmethod
-    def _base_table_style(primary, num_rows: int, font_size: int = 9, extra=None):
-        """Standard table style: primary header, alternating rows."""
+    def _base_table_style(primary, num_rows: int, font_size: int = 9, extra=None, secondary=None):
+        """Standard table style: primary navy header with gold underline, alternating warm rows."""
         cmds: list = [
             ("BACKGROUND", (0, 0), (-1, 0), primary),
             ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.white),
             ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, -1), font_size),
-            ("GRID", (0, 0), (-1, -1), 0.5, HexColor("#dddddd")),
-            ("PADDING", (0, 0), (-1, -1), 6),
+            ("FONTSIZE", (0, 0), (-1, 0), font_size + 0.5),
+            ("FONTSIZE", (0, 1), (-1, -1), font_size),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEADING", (0, 0), (-1, -1), font_size + 3),
+            ("LINEBELOW", (0, 0), (-1, 0), 1.5, secondary or HexColor("#C8A45A")),
+            ("GRID", (0, 1), (-1, -1), 0.4, GRID_LINE),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("LEFTPADDING", (0, 0), (-1, -1), 7),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+            ("BACKGROUND", (0, 1), (-1, -1), BG_PAPER),
         ]
         for i in range(1, num_rows):
             if i % 2 == 0:
-                cmds.append(("BACKGROUND", (0, i), (-1, i), HexColor("#f7f7f7")))
+                cmds.append(("BACKGROUND", (0, i), (-1, i), ROW_ALT))
         if extra:
             cmds.extend(extra)
         return TableStyle(cmds)
@@ -247,10 +302,24 @@ class PDFReportService:
         secondary = HexColor(org.brand_secondary_color or DEFAULT_SECONDARY)
         accent = HexColor(org.brand_accent_color or DEFAULT_ACCENT)
         primary_hex = org.brand_primary_color or DEFAULT_PRIMARY
+        secondary_hex = org.brand_secondary_color or DEFAULT_SECONDARY
         logo_path = self._resolve_logo_path(org)
 
         data = self._gather_data(org_id, assessment_year)
         cat_label = CATEGORY_SYSTEM_LABELS.get(org.category_system, "PIANOo")
+
+        # Pull insights from shared service so PDF & API stay in sync
+        try:
+            from app.services.insights_service import InsightsService
+            svc = InsightsService(self.db)
+            data["dept_insights"] = svc.get_department_insights(org_id)
+            data["spend_insights"] = svc.get_spend_insights(org_id)
+            data["category_pivot"] = svc.get_category_pivot(org_id, top_n=10)
+        except Exception as e:
+            logger.warning("InsightsService failed: %s", e)
+            data["dept_insights"] = {"departments": [], "totals": {"total_spend": 0, "total_suppliers": 0, "total_contracts": 0, "total_categories_mapped": 0, "spend_by_soort": {"Werken": 0, "Leveringen": 0, "Diensten": 0}}, "unmapped": {"supplier_count": 0, "total_spend": 0}, "all_years": []}
+            data["spend_insights"] = {"total_count": 0, "suppliers_all": [], "year_summaries": [], "totals": {"total_spend": 0, "total_transactions": 0, "avg_invoice": 0, "supplier_count": 0}, "top_avg_invoice": [], "top_transactions": []}
+            data["category_pivot"] = {"categories": [], "total_count": 0}
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
@@ -262,11 +331,11 @@ class PDFReportService:
         styles = self._create_styles(primary, secondary)
         story: list = []
 
-        # ── Cover page ──
-        self._build_cover(story, styles, org, assessment_year, logo_path)
+        # ── Cover page (drawn via canvas callback for full-bleed) ──
+        self._build_cover(story, styles, org, assessment_year, logo_path, primary_hex, secondary_hex)
 
         # ── Table of Contents ──
-        self._build_toc(story, styles, primary, cat_label)
+        self._build_toc(story, styles, primary, secondary, cat_label)
         story.append(PageBreak())
 
         # ── Section 1: Management Summary ──
@@ -283,102 +352,201 @@ class PDFReportService:
 
         # ── Section 4: Spend Trend ──
         self._build_spend_trend(story, styles, data, primary, secondary)
+        story.append(PageBreak())
 
-        # ── Section 5: Top 10 Suppliers ──
+        # ── Section 5 (NEW): Soort inkoop verdeling ──
+        self._build_soort_inkoop(story, styles, data, primary, secondary)
+        story.append(PageBreak())
+
+        # ── Section 6 (NEW): Afdelingen-dashboard ──
+        self._build_departments_overview(story, styles, data, primary, secondary)
+        story.append(PageBreak())
+
+        # ── Section 7 (NEW): Per-afdeling detail ──
+        self._build_departments_detail(story, styles, data, primary, secondary)
+
+        # ── Section 8: Top 10 Suppliers ──
         self._build_top_suppliers(story, styles, data, primary, secondary)
         story.append(PageBreak())
 
-        # ── Section 6: Concentration 80/20 ──
+        # ── Section 9: Concentration 80/20 ──
         self._build_concentration(story, styles, data, primary, secondary)
+        story.append(PageBreak())
 
-        # ── Section 7: Leveranciers per Categoriegroep ──
+        # ── Section 10 (NEW): Spend insights ──
+        self._build_spend_insights(story, styles, data, primary, secondary)
+        story.append(PageBreak())
+
+        # ── Section 11 (NEW): Categorieën pivot ──
+        self._build_category_pivot(story, styles, data, primary, secondary)
+        story.append(PageBreak())
+
+        # ── Section 12: Suppliers per groep ──
         self._build_suppliers_per_groep(story, styles, data, primary, secondary, cat_label)
         story.append(PageBreak())
 
-        # ── Section 8: Contractdekking ──
+        # ── Section 13: Portfolio dynamiek (contractdekking + dynamics + growth) ──
         self._build_contract_coverage(story, styles, data, primary, secondary)
-
-        # ── Section 9: Leveranciersdynamiek ──
         self._build_supplier_dynamics(story, styles, data, primary, secondary)
         story.append(PageBreak())
-
-        # ── Section 10: Categorie-ontwikkeling ──
         self._build_category_growth(story, styles, data, primary, secondary, cat_label)
+        story.append(PageBreak())
 
-        # ── Section 11: Risk Analysis ──
+        # ── Section 14: Risk Analysis ──
         self._build_risk_analysis(story, styles, data, primary, secondary)
         story.append(PageBreak())
 
-        # ── Section 12: Recommendations ──
+        # ── Section 15: Recommendations + Calendar ──
         self._build_recommendations(story, styles, data, primary, secondary, accent)
-
-        # ── Section 13: Calendar ──
         self._build_calendar_planning(story, styles, data, primary, secondary)
 
-        # Build PDF with numbered canvas
+        # ── First-page callback draws the full-bleed cover ──
+        def _on_first_page(c, doc):
+            self._draw_cover_page(c, doc, org, assessment_year, logo_path, primary_hex, secondary_hex)
+
+        # Build PDF with numbered canvas + cover callback
         nc_class = self._make_numbered_canvas(org.name, logo_path, primary_hex)
-        doc.build(story, canvasmaker=nc_class)
+        doc.build(story, onFirstPage=_on_first_page, canvasmaker=nc_class)
         buffer.seek(0)
         return buffer
 
-    # ── Cover ───────────────────────────────────────────────────────────
+    # ── Cover (full-bleed navy with gold accent) ────────────────────────
     @staticmethod
-    def _build_cover(story, styles, org, assessment_year, logo_path):
-        story.append(Spacer(1, 4 * cm))
+    def _build_cover(story, styles, org, assessment_year, logo_path, primary_hex, secondary_hex):
+        """Cover page is drawn directly via canvas in onFirstPage callback.
+
+        We push only a PageBreak here; actual drawing happens in _draw_cover_page.
+        The reason: Platypus flowables can't easily produce full-bleed colored
+        pages, so we use a canvas callback.
+        """
+        # Add an empty marker frame for the cover (drawn via callback)
+        story.append(Spacer(1, 1))  # placeholder to use first page
+        story.append(PageBreak())
+
+    @staticmethod
+    def _draw_cover_page(c, doc, org, assessment_year, logo_path, primary_hex, secondary_hex):
+        """Draws the cover page directly on the canvas with full-bleed navy bg."""
+        from reportlab.lib.pagesizes import A4
+        w, h = A4
+        primary = HexColor(primary_hex)
+        secondary = HexColor(secondary_hex)
+
+        # Full-bleed navy background
+        c.setFillColor(primary)
+        c.rect(0, 0, w, h, fill=1, stroke=0)
+
+        # Bottom-right gold diagonal accent
+        c.setFillColor(secondary)
+        path = c.beginPath()
+        path.moveTo(w, 0)
+        path.lineTo(w, 4 * cm)
+        path.lineTo(w - 8 * cm, 0)
+        path.close()
+        c.drawPath(path, fill=1, stroke=0)
+
+        # Subtle thin gold line top
+        c.setStrokeColor(secondary)
+        c.setLineWidth(2)
+        c.line(2 * cm, h - 1.5 * cm, 6 * cm, h - 1.5 * cm)
+
+        # Logo top-left (large, max 4cm wide/tall, preserving aspect ratio)
         if logo_path:
             try:
-                logo = Image(logo_path, width=6 * cm, height=6 * cm)
-                logo.hAlign = "CENTER"
-                story.append(logo)
-                story.append(Spacer(1, 1 * cm))
+                c.drawImage(
+                    logo_path, 2 * cm, h - 5.5 * cm,
+                    width=3.5 * cm, height=3.5 * cm,
+                    preserveAspectRatio=True, mask="auto", anchor="nw",
+                )
             except Exception:
                 pass
-        story.append(Paragraph(org.name, styles["CoverTitle"]))
-        story.append(Spacer(1, 0.5 * cm))
-        story.append(Paragraph(
-            "Inkoopanalyse &amp; WoCo Inkoopplatform", styles["CoverSubtitle"],
-        ))
-        story.append(Paragraph(str(assessment_year), styles["CoverSubtitle"]))
-        story.append(Spacer(1, 2 * cm))
-        story.append(Paragraph(
-            f"Rapportdatum: {date.today().strftime('%d-%m-%Y')}",
-            styles["CoverSubtitle"],
-        ))
-        story.append(Spacer(1, 1 * cm))
-        story.append(Paragraph("Opgesteld door Inkada", styles["CoverSubtitle"]))
-        story.append(PageBreak())
+
+        # Eyebrow text "INKOOPANALYSE"
+        c.setFillColor(secondary)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(2 * cm, h - 9 * cm, "INKOOPANALYSE")
+
+        # Org name (large white)
+        c.setFillColor(rl_colors.white)
+        c.setFont("Helvetica-Bold", 36)
+        # Wrap if too long
+        org_name = org.name or "Organisatie"
+        max_chars = 28
+        if len(org_name) > max_chars:
+            # Simple wrap on space
+            words = org_name.split(" ")
+            line1, line2 = "", ""
+            for word in words:
+                if len(line1) + len(word) <= max_chars:
+                    line1 = (line1 + " " + word).strip()
+                else:
+                    line2 = (line2 + " " + word).strip()
+            c.drawString(2 * cm, h - 11 * cm, line1)
+            if line2:
+                c.setFont("Helvetica-Bold", 30)
+                c.drawString(2 * cm, h - 12.5 * cm, line2)
+        else:
+            c.drawString(2 * cm, h - 11 * cm, org_name)
+
+        # Subtitle
+        c.setFillColor(HexColor("#D0D7DF"))
+        c.setFont("Helvetica", 16)
+        c.drawString(2 * cm, h - 13.5 * cm, f"Comprehensive rapport \u2014 {assessment_year}")
+
+        # Body description
+        c.setFont("Helvetica", 11)
+        c.setFillColor(HexColor("#A8B5C5"))
+        body_lines = [
+            "Een volledig overzicht van inkoopuitgaven, leveranciers, contracten,",
+            "afdelingen en risico's \u2014 samengebracht in \u00e9\u00e9n professioneel rapport.",
+        ]
+        for i, line in enumerate(body_lines):
+            c.drawString(2 * cm, h - 15 * cm - i * 0.55 * cm, line)
+
+        # Bottom info block
+        c.setFillColor(secondary)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(2 * cm, 3 * cm, "ADJUST")
+        c.setFillColor(HexColor("#A8B5C5"))
+        c.setFont("Helvetica", 9)
+        c.drawString(2 * cm, 2.4 * cm, f"Rapportdatum: {date.today().strftime('%d-%m-%Y')}")
+        c.drawString(2 * cm, 2.0 * cm, "Opgesteld via het Adjust Inkoopplatform")
 
     # ── Table of Contents ───────────────────────────────────────────────
     @staticmethod
-    def _build_toc(story, styles, primary, cat_label: str = "PIANOo"):
-        story.append(Paragraph("Inhoudsopgave", styles["SectionTitle"]))
-        story.append(Spacer(1, 1 * cm))
+    def _build_toc(story, styles, primary, secondary, cat_label: str = "PIANOo"):
+        story.append(Paragraph("INHOUDSOPGAVE", styles["SectionEyebrow"]))
+        story.append(Paragraph("Wat vind je in dit rapport", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.8 * cm))
 
         sections = [
             ("1", "Management Samenvatting"),
             ("2", "Niet-be\u00efnvloedbare Spend"),
             ("3", "Spendanalyse"),
             ("4", "Spendtrend"),
-            ("5", "Top 10 Leveranciers"),
-            ("6", "Concentratie-analyse"),
-            ("7", f"Leveranciers per {cat_label} Groep"),
-            ("8", "Contractdekking"),
-            ("9", "Leveranciersdynamiek"),
-            ("10", "Categorie-ontwikkeling"),
-            ("11", "Risicoanalyse"),
-            ("12", "Aanbevelingen"),
-            ("13", "WoCo Inkoopplatform"),
+            ("5", "Soort inkoop \u2014 Werken / Leveringen / Diensten"),
+            ("6", "Afdelingen \u2014 Overzicht"),
+            ("7", "Afdelingen \u2014 Detail per afdeling"),
+            ("8", "Top 10 Leveranciers"),
+            ("9", "Concentratie-analyse (80/20)"),
+            ("10", "Spend insights \u2014 Transacties & factuurwaarde"),
+            ("11", "Categorie\u00ebn \u2014 Top 10 met leveranciers"),
+            ("12", f"Leveranciers per {cat_label} Groep"),
+            ("13", "Portfolio dynamiek \u2014 Contractdekking, dynamics, growth"),
+            ("14", "Risicoanalyse"),
+            ("15", "Aanbevelingen & Inkoopkalender"),
         ]
         rows = [[num, title] for num, title in sections]
         t = Table(rows, colWidths=[1.5 * cm, 14 * cm])
         t.setStyle(TableStyle([
             ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
             ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 0), (-1, -1), 12),
-            ("TEXTCOLOR", (0, 0), (0, -1), primary),
-            ("TEXTCOLOR", (1, 0), (1, -1), HexColor("#333333")),
-            ("PADDING", (0, 0), (-1, -1), 8),
-            ("LINEBELOW", (0, 0), (-1, -1), 0.5, HexColor("#eeeeee")),
+            ("FONTSIZE", (0, 0), (0, -1), 11),
+            ("FONTSIZE", (1, 0), (1, -1), 10.5),
+            ("TEXTCOLOR", (0, 0), (0, -1), secondary),
+            ("TEXTCOLOR", (1, 0), (1, -1), SOFT_TEXT),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+            ("LINEBELOW", (0, 0), (-1, -1), 0.4, GRID_LINE),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ]))
         story.append(t)
@@ -790,7 +958,9 @@ class PDFReportService:
 
     # ── Section 1: Management Summary ───────────────────────────────────
     def _build_management_summary(self, story, styles, data, primary, secondary, cat_label: str = "PIANOo"):
+        story.append(Paragraph("OVERZICHT", styles["SectionEyebrow"]))
         story.append(Paragraph("1. Management Samenvatting", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.4 * cm))
 
         nb = data["niet_beinvloedbaar"]
         total_incl_nb = data["total_spend_all"]
@@ -805,6 +975,68 @@ class PDFReportService:
         conc = data["concentration"]
         cov = data.get("contract_coverage", {})
 
+        # KPI strip at top
+        kpis = [
+            {
+                "label": "Be\u00efnvloedbare spend",
+                "value": self._fmt_eur(data["total_spend"]),
+                "sub": f"Jaar {data['year']}",
+            },
+            {
+                "label": "Leveranciers",
+                "value": str(data["supplier_count"] - nb["supplier_count"]),
+                "sub": f"{cat_pct}% gecategoriseerd",
+            },
+            {
+                "label": "Contractdekking",
+                "value": f"{cov.get('coverage_pct', 0)}%",
+                "sub": self._fmt_eur(cov.get("maverick_spend", 0)) + " maverick",
+            },
+            {
+                "label": "Aflopende contracten",
+                "value": str(len(data["expiring_contracts"])),
+                "sub": "binnen 24 maanden",
+            },
+        ]
+        self._build_kpi_grid(story, styles, kpis, primary, secondary, cols=4)
+        story.append(Spacer(1, 0.6 * cm))
+
+        # Mini soort_inkoop donut (if available)
+        breakdown = data.get("dept_insights", {}).get("totals", {}).get("spend_by_soort", {})
+        sb_total = sum(breakdown.get(k, 0) for k in ("Werken", "Leveringen", "Diensten"))
+        if sb_total > 0:
+            story.append(Paragraph("Verdeling Werken / Leveringen / Diensten", styles["SubTitle"]))
+            mini_values = [breakdown.get(k, 0) for k in ("Werken", "Leveringen", "Diensten")]
+            mini_colors = [SOORT_COLORS["Werken"], SOORT_COLORS["Leveringen"], SOORT_COLORS["Diensten"]]
+            mini_donut = self._build_donut(mini_values, ["", "", ""], mini_colors, size_mm=35)
+            mini_table_rows = [
+                [Paragraph(f"<b><font color='{SOORT_COLORS['Werken'].hexval()}'>Werken</font></b>", styles["BodyText2"]),
+                 self._fmt_eur(breakdown.get("Werken", 0)),
+                 f"{breakdown.get('Werken', 0) / sb_total * 100:.0f}%"],
+                [Paragraph(f"<b><font color='{SOORT_COLORS['Leveringen'].hexval()}'>Leveringen</font></b>", styles["BodyText2"]),
+                 self._fmt_eur(breakdown.get("Leveringen", 0)),
+                 f"{breakdown.get('Leveringen', 0) / sb_total * 100:.0f}%"],
+                [Paragraph(f"<b><font color='{SOORT_COLORS['Diensten'].hexval()}'>Diensten</font></b>", styles["BodyText2"]),
+                 self._fmt_eur(breakdown.get("Diensten", 0)),
+                 f"{breakdown.get('Diensten', 0) / sb_total * 100:.0f}%"],
+            ]
+            mini_table = Table(mini_table_rows, colWidths=[3 * cm, 2.5 * cm, 1.5 * cm])
+            mini_table.setStyle(TableStyle([
+                ("ALIGN", (1, 0), (-1, -1), "RIGHT"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("FONTSIZE", (1, 0), (-1, -1), 9),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]))
+            mini_layout = Table([[mini_donut, mini_table]], colWidths=[5 * cm, 7 * cm])
+            mini_layout.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ]))
+            story.append(mini_layout)
+            story.append(Spacer(1, 0.4 * cm))
+
+        story.append(Paragraph("Belangrijkste bevindingen", styles["SubTitle"]))
         findings = [
             f"De totale be\u00efnvloedbare inkoopomvang in {data['year']} bedraagt "
             f"<b>{self._fmt_eur(data['total_spend'])}</b> verdeeld over "
@@ -1581,4 +1813,465 @@ class PDFReportService:
                 cal_extra.append(("TEXTCOLOR", (0, i), (0, i), RISK_COLORS["vrije_inkoop"]))
             cal_extra.append(("FONTNAME", (0, i), (0, i), "Helvetica-Bold"))
         t.setStyle(self._base_table_style(primary, len(rows), font_size=8, extra=cal_extra))
+        story.append(t)
+
+    # ── Helper: KPI card grid ──────────────────────────────────────────
+    @staticmethod
+    def _build_kpi_grid(story, styles, kpis: list[dict], primary, secondary, cols: int = 4):
+        """Render a row of KPI cards. Each kpi: {label, value, sub}."""
+        if not kpis:
+            return
+        rows: list[list] = []
+        # Group into rows of `cols`
+        for i in range(0, len(kpis), cols):
+            row_kpis = kpis[i:i + cols]
+            row_cells = []
+            for k in row_kpis:
+                cell = [
+                    Paragraph(k.get("label", "").upper(), styles["KPILabel"]),
+                    Paragraph(k.get("value", ""), styles["KPIValue"]),
+                ]
+                if k.get("sub"):
+                    cell.append(Paragraph(k["sub"], styles["KPISub"]))
+                row_cells.append(cell)
+            # Pad row if needed
+            while len(row_cells) < cols:
+                row_cells.append("")
+            rows.append(row_cells)
+
+        col_w = (17 * cm) / cols
+        t = Table(rows, colWidths=[col_w] * cols, hAlign="LEFT")
+        style_cmds = [
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING", (0, 0), (-1, -1), 12),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
+            ("BACKGROUND", (0, 0), (-1, -1), BG_PAPER),
+            ("BOX", (0, 0), (-1, -1), 0.4, GRID_LINE),
+        ]
+        # Vertical dividers between cells
+        for c in range(1, cols):
+            style_cmds.append(("LINEBEFORE", (c, 0), (c, -1), 0.4, GRID_LINE))
+        # Gold accent bar on top of each cell
+        for r in range(len(rows)):
+            for c in range(cols):
+                style_cmds.append(("LINEABOVE", (c, r), (c, r), 2, secondary))
+        t.setStyle(TableStyle(style_cmds))
+        story.append(t)
+
+    # ── Helper: build donut chart ───────────────────────────────────────
+    @staticmethod
+    def _build_donut(values, labels, colors, size_mm: float = 50, inner_fraction: float = 0.55):
+        """Render a donut chart with given values, labels, colors."""
+        d = Drawing(size_mm * mm, size_mm * mm)
+        pie = Pie()
+        pie.x = 0
+        pie.y = 0
+        pie.width = size_mm * mm
+        pie.height = size_mm * mm
+        pie.data = values
+        pie.labels = labels
+        pie.innerRadiusFraction = inner_fraction
+        pie.simpleLabels = 1
+        pie.sideLabels = 0
+        pie.slices.strokeColor = rl_colors.white
+        pie.slices.strokeWidth = 1
+        for i, color in enumerate(colors):
+            pie.slices[i].fillColor = color
+            pie.slices[i].fontName = "Helvetica-Bold"
+            pie.slices[i].fontSize = 8
+            pie.slices[i].labelRadius = 1.25
+        d.add(pie)
+        return d
+
+    # ── Section 5 (NEW): Soort inkoop ───────────────────────────────────
+    def _build_soort_inkoop(self, story, styles, data, primary, secondary):
+        story.append(Paragraph("SOORT INKOOP", styles["SectionEyebrow"]))
+        story.append(Paragraph("5. Werken / Leveringen / Diensten", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.3 * cm))
+
+        story.append(Paragraph(
+            "Volgens de Aanbestedingswet wordt elke inkoop geclassificeerd als <b>Werken</b> "
+            "(bouwactiviteiten), <b>Leveringen</b> (fysieke goederen) of <b>Diensten</b> "
+            "(alle overige). Voor elke soort gelden andere drempelbedragen voor aanbesteding. "
+            "Onderstaand de verdeling van de be\u00efnvloedbare spend op basis van categorie-classificatie.",
+            styles["BodyText2"],
+        ))
+        story.append(Spacer(1, 0.5 * cm))
+
+        breakdown = data.get("dept_insights", {}).get("totals", {}).get("spend_by_soort", {})
+        total = sum(breakdown.get(k, 0) for k in ("Werken", "Leveringen", "Diensten"))
+
+        if total <= 0:
+            story.append(Paragraph(
+                "Er is nog geen soort_inkoop verdeling beschikbaar. Zodra leveranciers gecategoriseerd "
+                "zijn en categorie\u00ebn aan afdelingen zijn gekoppeld, verschijnt deze analyse hier.",
+                styles["BodyMuted"],
+            ))
+            return
+
+        # Donut + table side by side
+        donut_values = [breakdown.get(k, 0) for k in ("Werken", "Leveringen", "Diensten")]
+        donut_labels = [""] * 3
+        donut_colors = [SOORT_COLORS["Werken"], SOORT_COLORS["Leveringen"], SOORT_COLORS["Diensten"]]
+        donut = self._build_donut(donut_values, donut_labels, donut_colors, size_mm=60)
+
+        table_rows = [["Soort", "Spend", "% van totaal"]]
+        for soort in ("Werken", "Leveringen", "Diensten"):
+            amt = breakdown.get(soort, 0)
+            pct = (amt / total * 100) if total > 0 else 0
+            table_rows.append([soort, self._fmt_eur(amt), f"{pct:.1f}%"])
+
+        right_table = Table(table_rows, colWidths=[3.5 * cm, 3 * cm, 2.5 * cm])
+        rt_extra = [
+            ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+        ]
+        # Color-coded soort cells
+        for i, soort in enumerate(("Werken", "Leveringen", "Diensten"), 1):
+            rt_extra.append(("TEXTCOLOR", (0, i), (0, i), SOORT_COLORS[soort]))
+            rt_extra.append(("FONTNAME", (0, i), (0, i), "Helvetica-Bold"))
+        right_table.setStyle(self._base_table_style(primary, len(table_rows), font_size=10, extra=rt_extra, secondary=secondary))
+
+        layout = Table(
+            [[donut, right_table]],
+            colWidths=[7 * cm, 9 * cm],
+        )
+        layout.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ]))
+        story.append(layout)
+
+    # ── Section 6 (NEW): Departments overview ───────────────────────────
+    def _build_departments_overview(self, story, styles, data, primary, secondary):
+        story.append(Paragraph("AFDELINGEN", styles["SectionEyebrow"]))
+        story.append(Paragraph("6. Inkoop per afdeling", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.3 * cm))
+
+        depts = data.get("dept_insights", {}).get("departments", [])
+        unmapped = data.get("dept_insights", {}).get("unmapped", {})
+
+        if not depts:
+            story.append(Paragraph(
+                "Er zijn nog geen afdelingen gekoppeld aan inkoopcategorie\u00ebn. "
+                "Configureer afdelingen via <b>Afdelingen \u2192 Beheer</b> om hier inzicht te krijgen "
+                "in spend, leveranciers en contracten per afdeling.",
+                styles["BodyText2"],
+            ))
+            return
+
+        story.append(Paragraph(
+            f"De be\u00efnvloedbare spend is verdeeld over <b>{len(depts)} afdelingen</b>. "
+            f"Onderstaand het overzicht; voor elke afdeling volgt op de volgende pagina's "
+            f"een gedetailleerde analyse.",
+            styles["BodyText2"],
+        ))
+        if unmapped.get("supplier_count", 0) > 0:
+            story.append(Paragraph(
+                f"<font color='#C72830'>Let op:</font> {unmapped['supplier_count']} leveranciers "
+                f"({self._fmt_eur(unmapped['total_spend'])}) zijn nog niet aan een afdeling gekoppeld.",
+                styles["BodyMuted"],
+            ))
+        story.append(Spacer(1, 0.5 * cm))
+
+        # Overview table
+        rows = [["Afdeling", "Spend", "% Totaal", "Cat.", "Lev.", "Contr."]]
+        total_spend = sum(d["total_spend"] for d in depts) or 1
+        for d in depts:
+            pct = d["total_spend"] / total_spend * 100
+            rows.append([
+                d["name"],
+                self._fmt_eur(d["total_spend"]),
+                f"{pct:.1f}%",
+                str(d["category_count"]),
+                str(d["supplier_count"]),
+                str(d["contract_count"]),
+            ])
+
+        t = Table(rows, colWidths=[5 * cm, 3 * cm, 2 * cm, 1.5 * cm, 1.5 * cm, 1.7 * cm])
+        t.setStyle(self._base_table_style(primary, len(rows), font_size=9, secondary=secondary, extra=[
+            ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+            ("ALIGN", (3, 1), (-1, -1), "CENTER"),
+        ]))
+        story.append(t)
+        story.append(Spacer(1, 0.7 * cm))
+
+        # Stacked bar showing soort_inkoop split per department
+        story.append(Paragraph("Verdeling Werken / Leveringen / Diensten per afdeling", styles["SubTitle"]))
+        bar_rows = []
+        for d in depts[:8]:  # limit to top 8 to keep page tidy
+            sb = d.get("spend_by_soort", {})
+            tot = sum(sb.get(k, 0) for k in ("Werken", "Leveringen", "Diensten")) or 1
+            werken_pct = sb.get("Werken", 0) / tot * 100
+            lever_pct = sb.get("Leveringen", 0) / tot * 100
+            dienst_pct = sb.get("Diensten", 0) / tot * 100
+            # Render percentages as text bars
+            bar_rows.append([
+                d["name"],
+                f"{werken_pct:.0f}%",
+                f"{lever_pct:.0f}%",
+                f"{dienst_pct:.0f}%",
+                self._fmt_eur(d["total_spend"]),
+            ])
+        bar_rows.insert(0, ["Afdeling", "Werken", "Leveringen", "Diensten", "Totaal"])
+        bt = Table(bar_rows, colWidths=[5 * cm, 2.5 * cm, 2.5 * cm, 2.5 * cm, 3 * cm])
+        bt_extra = [
+            ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+            ("TEXTCOLOR", (1, 0), (1, 0), rl_colors.white),
+            ("TEXTCOLOR", (2, 0), (2, 0), rl_colors.white),
+            ("TEXTCOLOR", (3, 0), (3, 0), rl_colors.white),
+        ]
+        for i in range(1, len(bar_rows)):
+            bt_extra.append(("TEXTCOLOR", (1, i), (1, i), SOORT_COLORS["Werken"]))
+            bt_extra.append(("TEXTCOLOR", (2, i), (2, i), SOORT_COLORS["Leveringen"]))
+            bt_extra.append(("TEXTCOLOR", (3, i), (3, i), SOORT_COLORS["Diensten"]))
+            bt_extra.append(("FONTNAME", (1, i), (3, i), "Helvetica-Bold"))
+        bt.setStyle(self._base_table_style(primary, len(bar_rows), font_size=9, extra=bt_extra, secondary=secondary))
+        story.append(bt)
+
+    # ── Section 7 (NEW): Departments detail ─────────────────────────────
+    def _build_departments_detail(self, story, styles, data, primary, secondary):
+        depts = data.get("dept_insights", {}).get("departments", [])
+        if not depts:
+            return
+
+        # Hard cap: if too many departments, skip detail pages
+        if len(depts) > 10:
+            story.append(Paragraph("AFDELINGEN", styles["SectionEyebrow"]))
+            story.append(Paragraph("7. Detail per afdeling", styles["SectionTitle"]))
+            story.append(Paragraph(
+                f"Er zijn {len(depts)} afdelingen \u2014 voor leesbaarheid wordt detail per afdeling "
+                f"alleen weergegeven als er minder dan 10 afdelingen zijn. Zie sectie 6 voor het overzicht.",
+                styles["BodyText2"],
+            ))
+            return
+
+        for idx, d in enumerate(depts):
+            if idx > 0:
+                story.append(PageBreak())
+            self._build_department_detail_page(story, styles, d, primary, secondary, idx)
+
+    def _build_department_detail_page(self, story, styles, dept, primary, secondary, idx: int):
+        story.append(Paragraph("AFDELING", styles["SectionEyebrow"]))
+        story.append(Paragraph(f"7.{idx + 1}  {dept['name']}", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.3 * cm))
+
+        # KPI strip
+        spend_per_year = dept.get("spend_per_year", [])
+        latest_year_spend = spend_per_year[-1]["spend"] if spend_per_year else 0
+        kpis = [
+            {"label": "Totale spend", "value": self._fmt_eur(dept["total_spend"]), "sub": f"{len(spend_per_year)} jaar(en)"},
+            {"label": "Categorie\u00ebn", "value": str(dept["category_count"]), "sub": f"top 5 hieronder"},
+            {"label": "Leveranciers", "value": str(dept["supplier_count"]), "sub": "actief in deze afdeling"},
+            {"label": "Contracten", "value": str(dept["contract_count"]), "sub": "via gekoppelde leveranciers"},
+        ]
+        self._build_kpi_grid(story, styles, kpis, primary, secondary, cols=4)
+        story.append(Spacer(1, 0.7 * cm))
+
+        # Soort inkoop donut + year trend side-by-side
+        sb = dept.get("spend_by_soort", {})
+        sb_total = sum(sb.get(k, 0) for k in ("Werken", "Leveringen", "Diensten"))
+        if sb_total > 0:
+            donut_values = [sb.get(k, 0) for k in ("Werken", "Leveringen", "Diensten")]
+            donut_colors = [SOORT_COLORS["Werken"], SOORT_COLORS["Leveringen"], SOORT_COLORS["Diensten"]]
+            donut = self._build_donut(donut_values, ["", "", ""], donut_colors, size_mm=45)
+
+            soort_table_rows = [["", "Spend", "%"]]
+            for soort in ("Werken", "Leveringen", "Diensten"):
+                amt = sb.get(soort, 0)
+                pct = (amt / sb_total * 100) if sb_total > 0 else 0
+                soort_table_rows.append([soort, self._fmt_eur(amt), f"{pct:.0f}%"])
+            st = Table(soort_table_rows, colWidths=[2.5 * cm, 2.5 * cm, 1.5 * cm])
+            st_extra = [("ALIGN", (1, 1), (-1, -1), "RIGHT")]
+            for i, soort in enumerate(("Werken", "Leveringen", "Diensten"), 1):
+                st_extra.append(("TEXTCOLOR", (0, i), (0, i), SOORT_COLORS[soort]))
+                st_extra.append(("FONTNAME", (0, i), (0, i), "Helvetica-Bold"))
+            st.setStyle(self._base_table_style(primary, len(soort_table_rows), font_size=9, extra=st_extra, secondary=secondary))
+
+            # Year trend table
+            year_rows = [["Jaar", "Spend", "Trans."]]
+            for ys in spend_per_year:
+                year_rows.append([str(ys["year"]), self._fmt_eur(ys["spend"]), str(ys["transactions"])])
+            yt = Table(year_rows, colWidths=[2 * cm, 3 * cm, 2 * cm])
+            yt.setStyle(self._base_table_style(primary, len(year_rows), font_size=9, extra=[("ALIGN", (1, 1), (-1, -1), "RIGHT")], secondary=secondary))
+
+            top_row = Table([
+                [
+                    [Paragraph("Verdeling Werken/Leveringen/Diensten", styles["SubTitle"]), donut, st],
+                    [Paragraph("Spend per jaar", styles["SubTitle"]), yt],
+                ]
+            ], colWidths=[8.5 * cm, 8.5 * cm])
+            top_row.setStyle(TableStyle([
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ]))
+            story.append(top_row)
+            story.append(Spacer(1, 0.7 * cm))
+
+        # Top 5 categories
+        story.append(Paragraph("Top 5 categorie\u00ebn", styles["SubTitle"]))
+        top_cats = dept.get("top_categories", [])
+        if top_cats:
+            cat_rows = [["#", "Categorie", "Spend", "Lev."]]
+            for i, c in enumerate(top_cats, 1):
+                cat_rows.append([str(i), c["category_name"], self._fmt_eur(c["spend"]), str(c["supplier_count"])])
+            ct = Table(cat_rows, colWidths=[1 * cm, 9 * cm, 3.5 * cm, 1.5 * cm])
+            ct.setStyle(self._base_table_style(primary, len(cat_rows), font_size=9, extra=[
+                ("ALIGN", (2, 1), (2, -1), "RIGHT"),
+                ("ALIGN", (0, 1), (0, -1), "CENTER"),
+                ("ALIGN", (3, 1), (3, -1), "CENTER"),
+            ], secondary=secondary))
+            story.append(ct)
+        else:
+            story.append(Paragraph("Geen categorie\u00ebn met spend in deze afdeling.", styles["BodyMuted"]))
+
+    # ── Section 10 (NEW): Spend insights ────────────────────────────────
+    def _build_spend_insights(self, story, styles, data, primary, secondary):
+        story.append(Paragraph("LEVERANCIER-INZICHTEN", styles["SectionEyebrow"]))
+        story.append(Paragraph("10. Transacties & gemiddelde factuurwaarde", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.3 * cm))
+
+        ins = data.get("spend_insights", {})
+        totals = ins.get("totals", {})
+
+        if totals.get("total_transactions", 0) == 0:
+            story.append(Paragraph(
+                "Er zijn nog geen transactiegegevens beschikbaar voor deze analyse.",
+                styles["BodyText2"],
+            ))
+            return
+
+        story.append(Paragraph(
+            f"De organisatie heeft in totaal <b>{totals['total_transactions']:,}</b> transacties verwerkt "
+            f"voor <b>{self._fmt_eur(totals['total_spend'])}</b>. De gemiddelde factuurwaarde "
+            f"is <b>{self._fmt_eur(totals['avg_invoice'])}</b>.".replace(",", "."),
+            styles["BodyText2"],
+        ))
+        story.append(Spacer(1, 0.4 * cm))
+
+        # Year summary table
+        years = ins.get("year_summaries", [])
+        if years:
+            story.append(Paragraph("Per jaar", styles["SubTitle"]))
+            year_rows = [["Jaar", "Spend", "Transacties", "Leveranciers", "Gem. factuur"]]
+            for y in years:
+                year_rows.append([
+                    str(y["year"]),
+                    self._fmt_eur(y["total_spend"]),
+                    f"{y['transaction_count']:,}".replace(",", "."),
+                    str(y["supplier_count"]),
+                    self._fmt_eur(y["avg_invoice"]),
+                ])
+            yt = Table(year_rows, colWidths=[2 * cm, 3.5 * cm, 3 * cm, 3 * cm, 3 * cm])
+            yt.setStyle(self._base_table_style(primary, len(year_rows), font_size=9, extra=[
+                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (0, 1), (0, -1), "CENTER"),
+            ], secondary=secondary))
+            story.append(yt)
+            story.append(Spacer(1, 0.6 * cm))
+
+        # Top 5 highest avg invoice
+        top_avg = ins.get("top_avg_invoice", [])
+        if top_avg:
+            story.append(Paragraph("Top 5 hoogste gemiddelde factuurwaarde", styles["SubTitle"]))
+            story.append(Paragraph(
+                "Leveranciers met minimaal 3 transacties, gesorteerd op gemiddelde factuurwaarde.",
+                styles["BodyMuted"],
+            ))
+            avg_rows = [["#", "Leverancier", "Categorie", "Trans.", "Gem. factuur"]]
+            for i, s in enumerate(top_avg, 1):
+                avg_rows.append([
+                    str(i),
+                    s["name"],
+                    s.get("category_name") or "\u2014",
+                    str(s["total_transactions"]),
+                    self._fmt_eur(s["avg_invoice"]),
+                ])
+            at = Table(avg_rows, colWidths=[0.8 * cm, 5.5 * cm, 5 * cm, 1.7 * cm, 3.5 * cm])
+            at.setStyle(self._base_table_style(primary, len(avg_rows), font_size=9, extra=[
+                ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (0, 1), (0, -1), "CENTER"),
+            ], secondary=secondary))
+            story.append(at)
+            story.append(Spacer(1, 0.6 * cm))
+
+        # Top 5 most transactions
+        top_tr = ins.get("top_transactions", [])
+        if top_tr:
+            story.append(Paragraph("Top 5 meeste transacties", styles["SubTitle"]))
+            tr_rows = [["#", "Leverancier", "Categorie", "Trans.", "Spend"]]
+            for i, s in enumerate(top_tr, 1):
+                tr_rows.append([
+                    str(i),
+                    s["name"],
+                    s.get("category_name") or "\u2014",
+                    f"{s['total_transactions']:,}".replace(",", "."),
+                    self._fmt_eur(s["total_spend"]),
+                ])
+            tt = Table(tr_rows, colWidths=[0.8 * cm, 5.5 * cm, 5 * cm, 1.7 * cm, 3.5 * cm])
+            tt.setStyle(self._base_table_style(primary, len(tr_rows), font_size=9, extra=[
+                ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
+                ("ALIGN", (0, 1), (0, -1), "CENTER"),
+            ], secondary=secondary))
+            story.append(tt)
+
+    # ── Section 11 (NEW): Category pivot top 10 ─────────────────────────
+    def _build_category_pivot(self, story, styles, data, primary, secondary):
+        story.append(Paragraph("CATEGORIE\u00cbN", styles["SectionEyebrow"]))
+        story.append(Paragraph("11. Top 10 categorie\u00ebn met leveranciers", styles["SectionTitle"]))
+        story.append(Spacer(1, 0.3 * cm))
+
+        cats = data.get("category_pivot", {}).get("categories", [])
+        if not cats:
+            story.append(Paragraph(
+                "Er zijn nog geen gecategoriseerde leveranciers \u2014 categorie-overzicht "
+                "verschijnt zodra leveranciers gekoppeld zijn aan inkooppakketten.",
+                styles["BodyText2"],
+            ))
+            return
+
+        story.append(Paragraph(
+            "Per categorie de top 3 leveranciers (gewogen op categoriseringspercentage). "
+            "Het totaalbedrag per categorie is de som van alle leveranciersaandelen.",
+            styles["BodyText2"],
+        ))
+        story.append(Spacer(1, 0.4 * cm))
+
+        rows = [["#", "Categorie / Leverancier", "Aandeel", "Spend"]]
+        styles_extra = []
+        row_idx = 1
+        for i, cat in enumerate(cats, 1):
+            # Category header row
+            rows.append([
+                f"{i}",
+                cat["category_name"],
+                f"{cat['supplier_count']} lev.",
+                self._fmt_eur(cat["total"]),
+            ])
+            styles_extra.append(("FONTNAME", (0, row_idx), (-1, row_idx), "Helvetica-Bold"))
+            styles_extra.append(("BACKGROUND", (0, row_idx), (-1, row_idx), HexColor("#EDE6D2")))
+            styles_extra.append(("TEXTCOLOR", (0, row_idx), (-1, row_idx), primary))
+            row_idx += 1
+            # Top 3 supplier rows
+            for s in cat.get("suppliers", [])[:3]:
+                pct = s.get("percentage")
+                pct_str = f"{pct:.0f}%" if pct is not None and pct < 100 else "100%"
+                rows.append([
+                    "",
+                    f"  \u2192 {s['name']}",
+                    pct_str,
+                    self._fmt_eur(s["total"]),
+                ])
+                styles_extra.append(("TEXTCOLOR", (1, row_idx), (1, row_idx), MUTED_TEXT))
+                row_idx += 1
+
+        styles_extra.extend([
+            ("ALIGN", (2, 1), (-1, -1), "RIGHT"),
+            ("ALIGN", (0, 1), (0, -1), "CENTER"),
+        ])
+        t = Table(rows, colWidths=[1 * cm, 9 * cm, 2.5 * cm, 3.5 * cm])
+        t.setStyle(self._base_table_style(primary, len(rows), font_size=9, extra=styles_extra, secondary=secondary))
         story.append(t)
