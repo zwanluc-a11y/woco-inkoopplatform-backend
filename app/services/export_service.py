@@ -212,9 +212,14 @@ class ExportService:
         output.seek(0)
         return output
 
-    # ── Helper: Categorieën sheet ───────────────────────────────────────
+    # ── Helper: Categorieën sheet (flat, filterable) ────────────────────
     def _add_categories_sheet(self, wb: Workbook, org_id: int, years: list[int]) -> None:
-        """Add a sheet showing spend grouped by category with suppliers nested."""
+        """Add a sheet with one row per supplier-in-category combo, fully filterable via AutoFilter.
+
+        Each multi-category supplier appears once per category with their actual
+        weighted percentage (e.g. 60% / 40% for a supplier split across two cats).
+        Use Excel's AutoFilter on the Categorie column to filter to one category.
+        """
         from app.services.insights_service import InsightsService
 
         ws = wb.create_sheet("Categorieën")
@@ -227,8 +232,8 @@ class ExportService:
 
         categories = pivot.get("categories", [])
 
-        # Headers
-        headers = ["Categorie / Leverancier", "Aandeel"]
+        # Headers — flat columns so AutoFilter works
+        headers = ["Categorie", "Leverancier", "Aandeel %"]
         headers.extend([str(y) for y in years])
         headers.append("Totaal")
 
@@ -239,61 +244,123 @@ class ExportService:
             cell.alignment = Alignment(horizontal="center")
             cell.border = THIN_BORDER
 
-        row_idx = 2
+        # Build flat rows: one per (category, supplier) combination
+        flat_rows: list[dict] = []
         for cat in categories:
-            # Category header row (bold, gold background)
             cat_name = cat.get("category_name") or "Ongecategoriseerd"
-            label_cell = ws.cell(row=row_idx, column=1,
-                                  value=f"{cat_name}  ({cat.get('supplier_count', 0)} leveranciers)")
-            label_cell.fill = GOLD_FILL
-            label_cell.font = GOLD_FONT
-            label_cell.border = THIN_BORDER
-            ws.cell(row=row_idx, column=2, value="").fill = GOLD_FILL
-            ws.cell(row=row_idx, column=2).border = THIN_BORDER
-            cat_spends = cat.get("spends", {})
-            for yr_idx, yr in enumerate(years):
-                cell = ws.cell(row=row_idx, column=3 + yr_idx,
-                               value=cat_spends.get(str(yr), 0))
-                cell.number_format = CURRENCY_FORMAT
-                cell.fill = GOLD_FILL
-                cell.font = GOLD_FONT
-                cell.border = THIN_BORDER
-            total_cell = ws.cell(row=row_idx, column=3 + len(years),
-                                  value=cat.get("total", 0))
-            total_cell.number_format = CURRENCY_FORMAT
-            total_cell.fill = GOLD_FILL
-            total_cell.font = GOLD_FONT
-            total_cell.border = THIN_BORDER
-            row_idx += 1
-
-            # Supplier rows (indented)
             for s in cat.get("suppliers", []):
-                name_cell = ws.cell(row=row_idx, column=1, value=f"    {s['name']}")
-                name_cell.border = THIN_BORDER
-                pct = s.get("percentage")
-                pct_str = f"{pct:.0f}%" if pct is not None else "100%"
-                pct_cell = ws.cell(row=row_idx, column=2, value=pct_str)
-                pct_cell.alignment = Alignment(horizontal="center")
-                pct_cell.border = THIN_BORDER
-                s_spends = s.get("spends", {})
-                for yr_idx, yr in enumerate(years):
-                    cell = ws.cell(row=row_idx, column=3 + yr_idx,
-                                   value=s_spends.get(str(yr), 0))
-                    cell.number_format = CURRENCY_FORMAT
-                    cell.border = THIN_BORDER
-                total_cell = ws.cell(row=row_idx, column=3 + len(years),
-                                      value=s.get("total", 0))
-                total_cell.number_format = CURRENCY_FORMAT
-                total_cell.font = Font(bold=True)
-                total_cell.border = THIN_BORDER
-                row_idx += 1
+                flat_rows.append({
+                    "category": cat_name,
+                    "name": s["name"],
+                    "percentage": s.get("percentage"),  # None for ongecategoriseerd
+                    "spends": s.get("spends", {}),
+                    "total": s.get("total", 0),
+                })
+
+        # Sort by category name, then by spend descending within category
+        flat_rows.sort(key=lambda r: (r["category"], -abs(r["total"])))
+
+        for row_idx, r in enumerate(flat_rows, 2):
+            ws.cell(row=row_idx, column=1, value=r["category"]).border = THIN_BORDER
+            ws.cell(row=row_idx, column=2, value=r["name"]).border = THIN_BORDER
+            pct = r["percentage"]
+            # Store as a number with % format so Excel filters/sorts numerically
+            pct_cell = ws.cell(row=row_idx, column=3,
+                               value=(float(pct) / 100.0) if pct is not None else None)
+            pct_cell.number_format = "0%"
+            pct_cell.alignment = Alignment(horizontal="center")
+            pct_cell.border = THIN_BORDER
+            for yr_idx, yr in enumerate(years):
+                cell = ws.cell(row=row_idx, column=4 + yr_idx,
+                               value=r["spends"].get(str(yr), 0))
+                cell.number_format = CURRENCY_FORMAT
+                cell.border = THIN_BORDER
+            total_cell = ws.cell(row=row_idx, column=4 + len(years), value=r["total"])
+            total_cell.number_format = CURRENCY_FORMAT
+            total_cell.font = Font(bold=True)
+            total_cell.border = THIN_BORDER
+
+            # Alternating row colors for readability
+            if row_idx % 2 == 0:
+                for col in range(1, len(headers) + 1):
+                    if col == 3:  # don't overwrite the % alignment
+                        ws.cell(row=row_idx, column=col).fill = PatternFill(
+                            start_color=LIGHT_GRAY, end_color=LIGHT_GRAY, fill_type="solid")
+                    else:
+                        ws.cell(row=row_idx, column=col).fill = PatternFill(
+                            start_color=LIGHT_GRAY, end_color=LIGHT_GRAY, fill_type="solid")
+
+        # Enable AutoFilter on header row — user can click the filter icon on
+        # the Categorie column to pick one or more categories
+        last_col_letter = get_column_letter(len(headers))
+        last_row = 1 + len(flat_rows)
+        if last_row > 1:
+            ws.auto_filter.ref = f"A1:{last_col_letter}{last_row}"
 
         # Column widths
-        ws.column_dimensions["A"].width = 45
-        ws.column_dimensions["B"].width = 10
+        ws.column_dimensions["A"].width = 35  # Categorie
+        ws.column_dimensions["B"].width = 38  # Leverancier
+        ws.column_dimensions["C"].width = 12  # Aandeel %
         for i in range(len(years) + 1):
-            ws.column_dimensions[get_column_letter(3 + i)].width = 15
-        ws.freeze_panes = "C2"
+            ws.column_dimensions[get_column_letter(4 + i)].width = 15
+
+        # Freeze the header row + first 3 columns so they stay visible while scrolling
+        ws.freeze_panes = "D2"
+
+        # ── Optional: small summary section above table ──
+        # We'll insert it as a second worksheet area is overkill; instead add
+        # a totals-per-category sheet for quick overview.
+        self._add_category_totals_sheet(wb, categories, years)
+
+    def _add_category_totals_sheet(self, wb: Workbook, categories: list[dict], years: list[int]) -> None:
+        """Add a 'Categorie totalen' sheet: one row per category, no nested suppliers."""
+        ws = wb.create_sheet("Categorie totalen")
+
+        headers = ["#", "Categorie", "Leveranciers"]
+        headers.extend([str(y) for y in years])
+        headers.append("Totaal")
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill = HEADER_FILL
+            cell.font = HEADER_FONT
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = THIN_BORDER
+
+        # Sort categories by total descending
+        cats_sorted = sorted(categories, key=lambda c: abs(c.get("total", 0)), reverse=True)
+        for row_idx, cat in enumerate(cats_sorted, 2):
+            ws.cell(row=row_idx, column=1, value=row_idx - 1).border = THIN_BORDER
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row_idx, column=2,
+                    value=cat.get("category_name") or "Ongecategoriseerd").border = THIN_BORDER
+            ws.cell(row=row_idx, column=3, value=cat.get("supplier_count", 0)).border = THIN_BORDER
+            ws.cell(row=row_idx, column=3).alignment = Alignment(horizontal="center")
+            cat_spends = cat.get("spends", {})
+            for yr_idx, yr in enumerate(years):
+                cell = ws.cell(row=row_idx, column=4 + yr_idx,
+                               value=cat_spends.get(str(yr), 0))
+                cell.number_format = CURRENCY_FORMAT
+                cell.border = THIN_BORDER
+            total_cell = ws.cell(row=row_idx, column=4 + len(years), value=cat.get("total", 0))
+            total_cell.number_format = CURRENCY_FORMAT
+            total_cell.font = Font(bold=True)
+            total_cell.border = THIN_BORDER
+            if row_idx % 2 == 0:
+                for col in range(1, len(headers) + 1):
+                    ws.cell(row=row_idx, column=col).fill = PatternFill(
+                        start_color=LIGHT_GRAY, end_color=LIGHT_GRAY, fill_type="solid")
+
+        last_col_letter = get_column_letter(len(headers))
+        last_row = 1 + len(cats_sorted)
+        if last_row > 1:
+            ws.auto_filter.ref = f"A1:{last_col_letter}{last_row}"
+
+        ws.column_dimensions["A"].width = 6
+        ws.column_dimensions["B"].width = 35
+        ws.column_dimensions["C"].width = 14
+        for i in range(len(years) + 1):
+            ws.column_dimensions[get_column_letter(4 + i)].width = 15
+        ws.freeze_panes = "D2"
 
     # ── Helper: Inzichten sheet ─────────────────────────────────────────
     def _add_insights_sheet(self, wb: Workbook, org_id: int) -> None:
