@@ -61,14 +61,14 @@ class ExportService:
         self.db = db
 
     def _get_category_label(self, org_id: int) -> str:
-        """Get the category label (always PIANOo)."""
-        return "PIANOo Categorie"
+        """Header label for the category column."""
+        return "Inkooppakket"
 
     def export_spend_analysis(self, org_id: int) -> io.BytesIO:
-        """Export spend analysis as formatted Excel."""
+        """Export spend analysis as formatted Excel with 3 sheets: Leveranciers, Categorieën, Inzichten."""
         wb = Workbook()
         ws = wb.active
-        ws.title = "Spendanalyse"
+        ws.title = "Leveranciers"
 
         # Get all years
         years_q = (
@@ -201,10 +201,259 @@ class ExportService:
         freeze_col = "F" if has_any_contracts else "E"
         ws.freeze_panes = f"{freeze_col}2"
 
+        # ── Sheet 2: Categorieën ────────────────────────────────────────
+        self._add_categories_sheet(wb, org_id, years)
+
+        # ── Sheet 3: Inzichten ──────────────────────────────────────────
+        self._add_insights_sheet(wb, org_id)
+
         output = io.BytesIO()
         wb.save(output)
         output.seek(0)
         return output
+
+    # ── Helper: Categorieën sheet ───────────────────────────────────────
+    def _add_categories_sheet(self, wb: Workbook, org_id: int, years: list[int]) -> None:
+        """Add a sheet showing spend grouped by category with suppliers nested."""
+        from app.services.insights_service import InsightsService
+
+        ws = wb.create_sheet("Categorieën")
+        svc = InsightsService(self.db)
+        try:
+            pivot = svc.get_category_pivot(org_id)
+        except Exception as e:
+            logger.warning("Could not load category pivot for export: %s", e)
+            pivot = {"categories": []}
+
+        categories = pivot.get("categories", [])
+
+        # Headers
+        headers = ["Categorie / Leverancier", "Aandeel"]
+        headers.extend([str(y) for y in years])
+        headers.append("Totaal")
+
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill = HEADER_FILL
+            cell.font = HEADER_FONT
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = THIN_BORDER
+
+        row_idx = 2
+        for cat in categories:
+            # Category header row (bold, gold background)
+            cat_name = cat.get("category_name") or "Ongecategoriseerd"
+            label_cell = ws.cell(row=row_idx, column=1,
+                                  value=f"{cat_name}  ({cat.get('supplier_count', 0)} leveranciers)")
+            label_cell.fill = GOLD_FILL
+            label_cell.font = GOLD_FONT
+            label_cell.border = THIN_BORDER
+            ws.cell(row=row_idx, column=2, value="").fill = GOLD_FILL
+            ws.cell(row=row_idx, column=2).border = THIN_BORDER
+            cat_spends = cat.get("spends", {})
+            for yr_idx, yr in enumerate(years):
+                cell = ws.cell(row=row_idx, column=3 + yr_idx,
+                               value=cat_spends.get(str(yr), 0))
+                cell.number_format = CURRENCY_FORMAT
+                cell.fill = GOLD_FILL
+                cell.font = GOLD_FONT
+                cell.border = THIN_BORDER
+            total_cell = ws.cell(row=row_idx, column=3 + len(years),
+                                  value=cat.get("total", 0))
+            total_cell.number_format = CURRENCY_FORMAT
+            total_cell.fill = GOLD_FILL
+            total_cell.font = GOLD_FONT
+            total_cell.border = THIN_BORDER
+            row_idx += 1
+
+            # Supplier rows (indented)
+            for s in cat.get("suppliers", []):
+                name_cell = ws.cell(row=row_idx, column=1, value=f"    {s['name']}")
+                name_cell.border = THIN_BORDER
+                pct = s.get("percentage")
+                pct_str = f"{pct:.0f}%" if pct is not None else "100%"
+                pct_cell = ws.cell(row=row_idx, column=2, value=pct_str)
+                pct_cell.alignment = Alignment(horizontal="center")
+                pct_cell.border = THIN_BORDER
+                s_spends = s.get("spends", {})
+                for yr_idx, yr in enumerate(years):
+                    cell = ws.cell(row=row_idx, column=3 + yr_idx,
+                                   value=s_spends.get(str(yr), 0))
+                    cell.number_format = CURRENCY_FORMAT
+                    cell.border = THIN_BORDER
+                total_cell = ws.cell(row=row_idx, column=3 + len(years),
+                                      value=s.get("total", 0))
+                total_cell.number_format = CURRENCY_FORMAT
+                total_cell.font = Font(bold=True)
+                total_cell.border = THIN_BORDER
+                row_idx += 1
+
+        # Column widths
+        ws.column_dimensions["A"].width = 45
+        ws.column_dimensions["B"].width = 10
+        for i in range(len(years) + 1):
+            ws.column_dimensions[get_column_letter(3 + i)].width = 15
+        ws.freeze_panes = "C2"
+
+    # ── Helper: Inzichten sheet ─────────────────────────────────────────
+    def _add_insights_sheet(self, wb: Workbook, org_id: int) -> None:
+        """Add a sheet with transaction insights: per-year summaries, top-5 lists, per-supplier detail."""
+        from app.services.insights_service import InsightsService
+
+        ws = wb.create_sheet("Inzichten")
+        svc = InsightsService(self.db)
+        try:
+            ins = svc.get_spend_insights(org_id)
+        except Exception as e:
+            logger.warning("Could not load spend insights for export: %s", e)
+            ins = {"year_summaries": [], "totals": {}, "top_avg_invoice": [], "top_transactions": [], "suppliers_all": []}
+
+        row_idx = 1
+
+        def write_section_header(title: str):
+            nonlocal row_idx
+            cell = ws.cell(row=row_idx, column=1, value=title)
+            cell.fill = HEADER_FILL
+            cell.font = HEADER_FONT
+            ws.row_dimensions[row_idx].height = 22
+            row_idx += 1
+
+        def write_column_headers(headers: list[str]):
+            nonlocal row_idx
+            for col_idx, h in enumerate(headers, 1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=h)
+                cell.fill = GOLD_FILL
+                cell.font = GOLD_FONT
+                cell.alignment = Alignment(horizontal="center")
+                cell.border = THIN_BORDER
+            row_idx += 1
+
+        # ── Totals ──
+        totals = ins.get("totals", {})
+        write_section_header("Totalen over alle jaren")
+        write_column_headers(["Metric", "Waarde"])
+        totals_rows = [
+            ("Totale spend", totals.get("total_spend", 0), CURRENCY_FORMAT),
+            ("Aantal transacties", totals.get("total_transactions", 0), "#,##0"),
+            ("Aantal leveranciers", totals.get("supplier_count", 0), "#,##0"),
+            ("Gemiddelde factuurwaarde", totals.get("avg_invoice", 0), CURRENCY_FORMAT),
+        ]
+        for label, value, fmt in totals_rows:
+            ws.cell(row=row_idx, column=1, value=label).border = THIN_BORDER
+            val_cell = ws.cell(row=row_idx, column=2, value=value)
+            val_cell.number_format = fmt
+            val_cell.font = Font(bold=True)
+            val_cell.border = THIN_BORDER
+            row_idx += 1
+        row_idx += 1  # blank line
+
+        # ── Per jaar ──
+        write_section_header("Per jaar")
+        write_column_headers(["Jaar", "Spend", "Transacties", "Leveranciers", "Gem. factuurwaarde"])
+        for ys in ins.get("year_summaries", []):
+            ws.cell(row=row_idx, column=1, value=ys["year"]).border = THIN_BORDER
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            cell = ws.cell(row=row_idx, column=2, value=ys["total_spend"])
+            cell.number_format = CURRENCY_FORMAT
+            cell.border = THIN_BORDER
+            cell = ws.cell(row=row_idx, column=3, value=ys["transaction_count"])
+            cell.number_format = "#,##0"
+            cell.border = THIN_BORDER
+            ws.cell(row=row_idx, column=4, value=ys["supplier_count"]).border = THIN_BORDER
+            ws.cell(row=row_idx, column=4).alignment = Alignment(horizontal="center")
+            cell = ws.cell(row=row_idx, column=5, value=ys["avg_invoice"])
+            cell.number_format = CURRENCY_FORMAT
+            cell.border = THIN_BORDER
+            row_idx += 1
+        row_idx += 1
+
+        # ── Top 5 hoogste gem. factuurwaarde ──
+        write_section_header("Top 5 hoogste gemiddelde factuurwaarde (min. 3 transacties)")
+        write_column_headers(["#", "Leverancier", "Categorie", "Transacties", "Gem. factuur"])
+        for i, s in enumerate(ins.get("top_avg_invoice", []), 1):
+            ws.cell(row=row_idx, column=1, value=i).border = THIN_BORDER
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row_idx, column=2, value=s["name"]).border = THIN_BORDER
+            ws.cell(row=row_idx, column=3, value=s.get("category_name") or "—").border = THIN_BORDER
+            cell = ws.cell(row=row_idx, column=4, value=s["total_transactions"])
+            cell.number_format = "#,##0"
+            cell.border = THIN_BORDER
+            cell = ws.cell(row=row_idx, column=5, value=s["avg_invoice"])
+            cell.number_format = CURRENCY_FORMAT
+            cell.font = Font(bold=True)
+            cell.border = THIN_BORDER
+            row_idx += 1
+        row_idx += 1
+
+        # ── Top 5 meeste transacties ──
+        write_section_header("Top 5 meeste transacties")
+        write_column_headers(["#", "Leverancier", "Categorie", "Transacties", "Spend"])
+        for i, s in enumerate(ins.get("top_transactions", []), 1):
+            ws.cell(row=row_idx, column=1, value=i).border = THIN_BORDER
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row_idx, column=2, value=s["name"]).border = THIN_BORDER
+            ws.cell(row=row_idx, column=3, value=s.get("category_name") or "—").border = THIN_BORDER
+            cell = ws.cell(row=row_idx, column=4, value=s["total_transactions"])
+            cell.number_format = "#,##0"
+            cell.font = Font(bold=True)
+            cell.border = THIN_BORDER
+            cell = ws.cell(row=row_idx, column=5, value=s["total_spend"])
+            cell.number_format = CURRENCY_FORMAT
+            cell.border = THIN_BORDER
+            row_idx += 1
+        row_idx += 1
+
+        # ── Detail per leverancier ──
+        write_section_header("Detail per leverancier")
+        all_suppliers = ins.get("suppliers_all", [])
+        years = sorted({int(yr) for s in all_suppliers for yr in s.get("yearly", {}).keys()}) if all_suppliers else []
+
+        detail_headers = ["#", "Leverancier", "Categorie"]
+        for yr in years:
+            detail_headers.extend([f"{yr} trans.", f"{yr} gem. factuur"])
+        detail_headers.extend(["Totaal transacties", "Totaal spend", "Gem. factuur"])
+        write_column_headers(detail_headers)
+
+        # Sort by total_spend descending
+        suppliers_sorted = sorted(all_suppliers, key=lambda x: abs(x.get("total_spend", 0)), reverse=True)
+        for i, s in enumerate(suppliers_sorted, 1):
+            ws.cell(row=row_idx, column=1, value=i).border = THIN_BORDER
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row_idx, column=2, value=s["name"]).border = THIN_BORDER
+            ws.cell(row=row_idx, column=3, value=s.get("category_name") or "—").border = THIN_BORDER
+            col = 4
+            yearly = s.get("yearly", {})
+            for yr in years:
+                y = yearly.get(str(yr), {})
+                cell = ws.cell(row=row_idx, column=col, value=y.get("transaction_count", 0))
+                cell.number_format = "#,##0"
+                cell.border = THIN_BORDER
+                col += 1
+                cell = ws.cell(row=row_idx, column=col, value=y.get("avg_invoice", 0))
+                cell.number_format = CURRENCY_FORMAT
+                cell.border = THIN_BORDER
+                col += 1
+            cell = ws.cell(row=row_idx, column=col, value=s.get("total_transactions", 0))
+            cell.number_format = "#,##0"
+            cell.font = Font(bold=True)
+            cell.border = THIN_BORDER
+            col += 1
+            cell = ws.cell(row=row_idx, column=col, value=s.get("total_spend", 0))
+            cell.number_format = CURRENCY_FORMAT
+            cell.font = Font(bold=True)
+            cell.border = THIN_BORDER
+            col += 1
+            cell = ws.cell(row=row_idx, column=col, value=s.get("avg_invoice", 0))
+            cell.number_format = CURRENCY_FORMAT
+            cell.border = THIN_BORDER
+            row_idx += 1
+
+        # Column widths
+        ws.column_dimensions["A"].width = 8
+        ws.column_dimensions["B"].width = 38
+        ws.column_dimensions["C"].width = 30
+        for i in range(4, 4 + len(years) * 2 + 3):
+            ws.column_dimensions[get_column_letter(i)].width = 15
 
     def export_risk_assessment(self, org_id: int, assessment_year: int) -> io.BytesIO:
         """Export risk assessment as formatted Excel."""
