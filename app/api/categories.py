@@ -1,10 +1,12 @@
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_current_user_or_token, get_db
 from app.models.category import InkoopCategory
 from app.models.user import User
 from app.schemas.category import InkoopCategoryResponse
+from app.services.export_service import ExportService
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -33,6 +35,23 @@ def list_categories_grouped(
             grouped[cat.groep] = []
         grouped[cat.groep].append(InkoopCategoryResponse.model_validate(cat))
     return [{"groep": groep, "categories": cats} for groep, cats in grouped.items()]
+
+
+@router.get("/export")
+def export_categories(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user_or_token)],
+    category_system: Optional[str] = Query("woco"),
+):
+    """Export the full category list as Excel."""
+    service = ExportService(db)
+    output = service.export_categories(category_system or "woco")
+    filename = f"categorieenlijst_{category_system or 'woco'}.xlsx"
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.get("/search", response_model=list[InkoopCategoryResponse])

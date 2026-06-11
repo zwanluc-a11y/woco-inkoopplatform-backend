@@ -19,6 +19,7 @@ from openpyxl.utils import get_column_letter
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.models.category import InkoopCategory
 from app.models.contract import Contract, ContractSupplier
 from app.models.procurement_calendar_item import ProcurementCalendarItem
 from app.models.risk_assessment import RiskAssessment
@@ -608,6 +609,132 @@ class ExportService:
 
         ws.freeze_panes = "E2"
         ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}{len(assessments) + 1}"
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        return output
+
+    # ── Export: platform category list ──────────────────────────────────
+    def export_categories(self, category_system: str = "woco") -> io.BytesIO:
+        """Export the full platform category list as Excel.
+
+        Returns a workbook with two sheets:
+          1. 'Categorieën' — flat filterable table with all category fields
+          2. 'Per groep' — categories grouped by groep with totals
+        """
+        wb = Workbook()
+
+        cats = (
+            self.db.query(InkoopCategory)
+            .filter(InkoopCategory.category_system == category_system)
+            .order_by(InkoopCategory.groep, InkoopCategory.nummer)
+            .all()
+        )
+
+        # ── Sheet 1: flat filterable list ──
+        ws = wb.active
+        ws.title = "Categorieën"
+
+        headers = [
+            "Nummer", "Inkooppakket", "Groep", "Soort inkoop",
+            "Classificatie", "CPV-code", "Homogeen", "Definitie",
+        ]
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill = HEADER_FILL
+            cell.font = HEADER_FONT
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = THIN_BORDER
+
+        for row_idx, c in enumerate(cats, 2):
+            ws.cell(row=row_idx, column=1, value=c.nummer).border = THIN_BORDER
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row_idx, column=2, value=c.inkooppakket).border = THIN_BORDER
+            ws.cell(row=row_idx, column=3, value=c.groep).border = THIN_BORDER
+            ws.cell(row=row_idx, column=4, value=c.soort_inkoop or "").border = THIN_BORDER
+            ws.cell(row=row_idx, column=5, value=c.classificatie or "").border = THIN_BORDER
+            ws.cell(row=row_idx, column=6, value=c.cpv_code or "").border = THIN_BORDER
+            homogeen_cell = ws.cell(row=row_idx, column=7,
+                                     value=("Ja" if c.homogeen else "Nee") if c.homogeen is not None else "")
+            homogeen_cell.alignment = Alignment(horizontal="center")
+            homogeen_cell.border = THIN_BORDER
+            def_cell = ws.cell(row=row_idx, column=8, value=c.definitie or "")
+            def_cell.alignment = Alignment(wrap_text=True, vertical="top")
+            def_cell.border = THIN_BORDER
+
+            # Alternating row colors
+            if row_idx % 2 == 0:
+                for col in range(1, len(headers) + 1):
+                    ws.cell(row=row_idx, column=col).fill = PatternFill(
+                        start_color=LIGHT_GRAY, end_color=LIGHT_GRAY, fill_type="solid")
+
+        # AutoFilter on header row so users can filter by groep / soort / etc.
+        last_col_letter = get_column_letter(len(headers))
+        last_row = 1 + len(cats)
+        if last_row > 1:
+            ws.auto_filter.ref = f"A1:{last_col_letter}{last_row}"
+
+        # Column widths
+        ws.column_dimensions["A"].width = 10  # Nummer
+        ws.column_dimensions["B"].width = 42  # Inkooppakket
+        ws.column_dimensions["C"].width = 22  # Groep
+        ws.column_dimensions["D"].width = 14  # Soort
+        ws.column_dimensions["E"].width = 16  # Classificatie
+        ws.column_dimensions["F"].width = 14  # CPV
+        ws.column_dimensions["G"].width = 10  # Homogeen
+        ws.column_dimensions["H"].width = 70  # Definitie
+        ws.freeze_panes = "C2"  # Keep nummer + inkooppakket visible while scrolling
+
+        # ── Sheet 2: per groep summary ──
+        ws2 = wb.create_sheet("Per groep")
+        groep_headers = ["#", "Groep", "Aantal categorieën", "Soort: Werken",
+                          "Soort: Leveringen", "Soort: Diensten"]
+        for col_idx, header in enumerate(groep_headers, 1):
+            cell = ws2.cell(row=1, column=col_idx, value=header)
+            cell.fill = HEADER_FILL
+            cell.font = HEADER_FONT
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = THIN_BORDER
+
+        # Aggregate per groep
+        from collections import defaultdict
+        groep_counts: dict[str, dict] = defaultdict(lambda: {
+            "count": 0, "werken": 0, "leveringen": 0, "diensten": 0,
+        })
+        for c in cats:
+            g = c.groep or "Onbekend"
+            groep_counts[g]["count"] += 1
+            soort = (c.soort_inkoop or "").lower()
+            if "werken" in soort:
+                groep_counts[g]["werken"] += 1
+            elif "leveringen" in soort:
+                groep_counts[g]["leveringen"] += 1
+            elif "diensten" in soort:
+                groep_counts[g]["diensten"] += 1
+
+        for row_idx, (groep, info) in enumerate(sorted(groep_counts.items()), 2):
+            ws2.cell(row=row_idx, column=1, value=row_idx - 1).border = THIN_BORDER
+            ws2.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws2.cell(row=row_idx, column=2, value=groep).border = THIN_BORDER
+            for col_idx, key in enumerate(("count", "werken", "leveringen", "diensten"), 3):
+                cell = ws2.cell(row=row_idx, column=col_idx, value=info[key])
+                cell.alignment = Alignment(horizontal="center")
+                cell.border = THIN_BORDER
+            if row_idx % 2 == 0:
+                for col in range(1, len(groep_headers) + 1):
+                    ws2.cell(row=row_idx, column=col).fill = PatternFill(
+                        start_color=LIGHT_GRAY, end_color=LIGHT_GRAY, fill_type="solid")
+
+        last_col_letter = get_column_letter(len(groep_headers))
+        last_row = 1 + len(groep_counts)
+        if last_row > 1:
+            ws2.auto_filter.ref = f"A1:{last_col_letter}{last_row}"
+
+        ws2.column_dimensions["A"].width = 6
+        ws2.column_dimensions["B"].width = 25
+        for i in range(3, 7):
+            ws2.column_dimensions[get_column_letter(i)].width = 18
 
         output = io.BytesIO()
         wb.save(output)
